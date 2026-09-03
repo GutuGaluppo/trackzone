@@ -63,8 +63,7 @@ export function CollectionTrackList({
       <tbody>
         {tracks.map((track) => {
           const isCurrent = track.id === currentTrackId;
-          const isPlayable =
-            track.processing_status === 'ready' || track.processing_status === null;
+          const isPlayable = track.processing_status !== 'failed';
 
           return (
             <tr
