@@ -1,0 +1,4 @@
+{
+  "extends": "@trackzone/config/tsconfig/library.json",
+  "include": ["src/**/*.ts", "eslint.config.mjs"]
+}

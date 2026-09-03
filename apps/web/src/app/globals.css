@@ -1,0 +1,132 @@
+@import 'tailwindcss';
+
+/*
+ * TrackZone design tokens.
+ *
+ * Two environments, one palette (docs/PRODUCT_BRAND_TECHNICAL_DIRECTION.md §10,15):
+ *   marketing  → warm off-white, editorial
+ *   workspace  → charcoal, dense, hardware-inspired
+ *
+ * Signal Orange is rationed on purpose: it only marks the active/primary
+ * moment. Olive carries "ready / available / playing" so the two never fight.
+ */
+
+@theme {
+  /* Brand ----------------------------------------------------------------- */
+  --color-ink: #171717;
+  --color-paper: #f4f1ea;
+  --color-signal: #ff4d24;
+  --color-signal-dim: #d43d1a;
+  --color-olive: #8da52a;
+  --color-olive-dim: #6f8321;
+  --color-warm-gray: #77736b;
+
+  /* Workspace surfaces (dark) --------------------------------------------- */
+  --color-surface-0: #0e0e0d;
+  --color-surface-1: #141413;
+  --color-surface-2: #1c1b19;
+  --color-surface-3: #24231f;
+  --color-surface-4: #2e2c28;
+  --color-line: #2a2825;
+  --color-line-strong: #3a3733;
+
+  /* Workspace text --------------------------------------------------------- */
+  --color-fg: #ece8df;
+  --color-fg-muted: #a49f95;
+  --color-fg-subtle: #77736b;
+
+  /* Marketing surfaces (light) --------------------------------------------- */
+  --color-paper-2: #eae6dc;
+  --color-paper-line: #d9d3c6;
+
+  --color-danger: #e0563c;
+
+  /* Type ------------------------------------------------------------------- */
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Precision-instrument scale: small, tight, deliberate. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+
+  --spacing-row: 2.25rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  /* The workspace opts into the dark environment explicitly. */
+  body:has([data-environment='workspace']) {
+    background-color: var(--color-surface-0);
+    color: var(--color-fg);
+  }
+
+  /* Focus is always visible — a requirement, not a default. */
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-signal) 30%, transparent);
+  }
+
+  /* Technical readouts use tabular figures so columns never jitter. */
+  .tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* Industrial labeling: small, spaced, uppercase. */
+  .label-plate {
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-fg-subtle);
+  }
+}
+
+@layer utilities {
+  /* Hairline used across faceplates and table rules. */
+  .rule {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
