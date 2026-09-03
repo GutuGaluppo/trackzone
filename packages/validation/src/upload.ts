@@ -5,7 +5,6 @@ import {
   isAllowedMimeType,
   mimeMatchesExtension,
 } from './audio.ts';
-import { uuidSchema } from './track.ts';
 
 /**
  * Request for a signed R2 upload URL.
@@ -51,7 +50,6 @@ export const createUploadSchema = z
  * re-verifies the object against storage before creating any record.
  */
 export const completeUploadSchema = z.object({
-  uploadId: uuidSchema,
   storageKey: z.string().min(1).max(512),
   checksum: z
     .string()

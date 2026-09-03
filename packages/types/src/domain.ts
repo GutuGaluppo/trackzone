@@ -1,7 +1,11 @@
 import type { LibraryTrackRow, Provider, ProcessingStatus, TrackVisibility } from './database.ts';
 
-/** A row as the Library table consumes it. */
-export type LibraryTrack = LibraryTrackRow;
+/**
+ * A row as the Library table consumes it. `search_vector` exists on
+ * LibraryTrackRow only so `.textSearch()` type-checks against the view — it is
+ * never selected, so it is never part of what the UI actually receives.
+ */
+export type LibraryTrack = Omit<LibraryTrackRow, 'search_vector'>;
 
 export interface Collection {
   id: string;

@@ -27,7 +27,11 @@ const serverSchema = z.object({
 export type ClientEnv = z.infer<typeof clientSchema>;
 export type ServerEnv = z.infer<typeof serverSchema>;
 
-function parse<T>(schema: z.ZodType<T>, source: Record<string, string | undefined>, kind: string): T {
+function parse<T>(
+  schema: z.ZodType<T>,
+  source: Record<string, string | undefined>,
+  kind: string,
+): T {
   const result = schema.safeParse(source);
 
   if (!result.success) {

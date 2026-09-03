@@ -27,8 +27,7 @@ export interface R2Config {
  */
 export function createR2Storage(config: R2Config): ObjectStorage {
   const endpoint =
-    config.endpoint?.replace(/\/+$/, '') ??
-    `https://${config.accountId}.r2.cloudflarestorage.com`;
+    config.endpoint?.replace(/\/+$/, '') ?? `https://${config.accountId}.r2.cloudflarestorage.com`;
 
   const client = new AwsClient({
     accessKeyId: config.accessKeyId,

@@ -15,12 +15,7 @@ export type ProcessingStatus = 'pending' | 'processing' | 'ready' | 'failed';
 export type SourceStatus = 'available' | 'missing' | 'error';
 export type ConnectionStatus = 'active' | 'expired' | 'revoked' | 'error';
 export type ImportStatus =
-  | 'pending'
-  | 'discovering'
-  | 'running'
-  | 'completed'
-  | 'failed'
-  | 'cancelled';
+  'pending' | 'discovering' | 'running' | 'completed' | 'failed' | 'cancelled';
 export type ImportItemStatus = 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
 
 type ProfileRow = {
@@ -45,7 +40,7 @@ type TrackRow = {
   favorite: boolean;
   created_at: string;
   updated_at: string;
-}
+};
 
 type AudioFileRow = {
   id: string;
@@ -79,7 +74,7 @@ type TrackSourceRow = {
   status: SourceStatus;
   created_at: string;
   updated_at: string;
-}
+};
 
 type TrackAccessRow = {
   track_id: string;
@@ -96,7 +91,7 @@ type CollectionRow = {
   visibility: TrackVisibility;
   created_at: string;
   updated_at: string;
-}
+};
 
 type CollectionTrackRow = {
   collection_id: string;
@@ -171,6 +166,8 @@ export type LibraryTrackRow = {
   processing_status: ProcessingStatus | null;
   processing_error: string | null;
   source_providers: Provider[];
+  /** Never read directly; present only so `.textSearch('search_vector', ...)` type-checks. */
+  search_vector: unknown;
 };
 
 /** Columns the database fills in for us on insert. */

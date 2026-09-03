@@ -12,8 +12,7 @@ type Size = 'sm' | 'md' | 'lg' | 'icon';
  * action that matters (docs §10). Everything else is a quieter control.
  */
 const VARIANTS: Record<Variant, string> = {
-  signal:
-    'bg-signal text-white hover:bg-signal-dim active:translate-y-px disabled:bg-signal/40',
+  signal: 'bg-signal text-white hover:bg-signal-dim active:translate-y-px disabled:bg-signal/40',
   solid: 'bg-surface-4 text-fg hover:bg-line-strong active:translate-y-px',
   outline: 'border border-line-strong text-fg hover:bg-surface-3 active:translate-y-px',
   ghost: 'text-fg-muted hover:bg-surface-3 hover:text-fg',

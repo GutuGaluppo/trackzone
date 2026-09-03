@@ -7,14 +7,15 @@ export const createCollectionSchema = z.object({
   visibility: visibilitySchema.default('private'),
 });
 
-export const updateCollectionSchema = createCollectionSchema.partial().refine(
-  (value) => Object.keys(value).length > 0,
-  'Nothing to update',
-);
+export const updateCollectionSchema = createCollectionSchema
+  .partial()
+  .refine((value) => Object.keys(value).length > 0, 'Nothing to update');
 
 export const collectionTrackSchema = z.object({
   trackId: uuidSchema,
 });
 
 export type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
+/** Pre-default shape (`visibility` optional) — what a form's fields actually hold. */
+export type CreateCollectionFormInput = z.input<typeof createCollectionSchema>;
 export type UpdateCollectionInput = z.infer<typeof updateCollectionSchema>;

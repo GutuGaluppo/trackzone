@@ -23,7 +23,11 @@ export const POST = route(async (request: NextRequest) => {
   const { user } = await getOptionalUser();
   if (!user) return fail(401, 'not_authenticated', 'Sign in to upload audio.');
 
-  const limit = rateLimit(`upload:${user.id}`, LIMITS.createUpload.limit, LIMITS.createUpload.windowMs);
+  const limit = rateLimit(
+    `upload:${user.id}`,
+    LIMITS.createUpload.limit,
+    LIMITS.createUpload.windowMs,
+  );
   if (!limit.allowed) {
     return fail(429, 'rate_limited', 'Too many uploads started. Try again shortly.');
   }

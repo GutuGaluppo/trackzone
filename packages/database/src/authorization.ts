@@ -26,15 +26,10 @@ export interface TrackAuthorizationInput {
 }
 
 export type DenyReason =
-  | 'not_authenticated'
-  | 'not_owner'
-  | 'no_grant'
-  | 'private_track'
-  | 'download_not_allowed';
+  'not_authenticated' | 'not_owner' | 'no_grant' | 'private_track' | 'download_not_allowed';
 
 export type AccessDecision =
-  | { allowed: true; as: 'owner' | 'grantee' | 'public' }
-  | { allowed: false; reason: DenyReason };
+  { allowed: true; as: 'owner' | 'grantee' | 'public' } | { allowed: false; reason: DenyReason };
 
 const deny = (reason: DenyReason): AccessDecision => ({ allowed: false, reason });
 
@@ -76,9 +71,7 @@ export function canDownloadTrack(viewer: Viewer, track: TrackAuthorizationInput)
 /** Only the owner may edit metadata, change visibility or delete. */
 export function canModifyTrack(viewer: Viewer, track: TrackAuthorizationInput): AccessDecision {
   if (!viewer.userId) return deny('not_authenticated');
-  return viewer.userId === track.ownerId
-    ? { allowed: true, as: 'owner' }
-    : deny('not_owner');
+  return viewer.userId === track.ownerId ? { allowed: true, as: 'owner' } : deny('not_owner');
 }
 
 /** Only the owner may grant or revoke access. */
@@ -95,10 +88,9 @@ export class AuthorizationError extends Error {
 }
 
 /** Narrows a decision to its allowed form, throwing otherwise. */
-export function assertAllowed(decision: AccessDecision): asserts decision is Extract<
-  AccessDecision,
-  { allowed: true }
-> {
+export function assertAllowed(
+  decision: AccessDecision,
+): asserts decision is Extract<AccessDecision, { allowed: true }> {
   if (!decision.allowed) {
     throw new AuthorizationError(decision.reason);
   }

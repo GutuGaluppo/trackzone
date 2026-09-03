@@ -66,11 +66,7 @@ export function route<Args extends unknown[]>(
     } catch (error) {
       if (error instanceof AuthorizationError) {
         console.warn('[authz] denied', { reason: error.reason });
-        return fail(
-          DENY_STATUS[error.reason],
-          `authz_${error.reason}`,
-          DENY_MESSAGE[error.reason],
-        );
+        return fail(DENY_STATUS[error.reason], `authz_${error.reason}`, DENY_MESSAGE[error.reason]);
       }
 
       if (error instanceof ZodError) {

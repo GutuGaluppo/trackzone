@@ -18,6 +18,7 @@ select
   t.favorite,
   t.created_at,
   t.updated_at,
+  t.search_vector,
   p.username        as owner_username,
   p.display_name    as owner_display_name,
   af.id             as audio_file_id,

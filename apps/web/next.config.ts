@@ -8,9 +8,6 @@ const nextConfig: NextConfig = {
     '@trackzone/types',
     '@trackzone/validation',
   ],
-  experimental: {
-    typedRoutes: true,
-  },
   async headers() {
     return [
       {
