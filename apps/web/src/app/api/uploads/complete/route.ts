@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { getOptionalUser } from '@/lib/auth/require-user';
 import { fail, ok, route } from '@/lib/api/responses';
 import { storage } from '@/lib/storage';
+import { enqueueAudioProcessing } from '@/lib/jobs/process-audio';
 
 export const runtime = 'nodejs';
 
@@ -91,6 +92,8 @@ export const POST = route(async (request: NextRequest) => {
   ]);
 
   if (sourceError) throw sourceError;
+
+  await enqueueAudioProcessing(audioFile.id);
 
   return ok({ trackId: track.id, audioFileId: audioFile.id }, { status: 201 });
 });

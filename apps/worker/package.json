@@ -1,0 +1,31 @@
+{
+  "name": "@trackzone/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./trigger/process-audio-file": "./src/trigger/process-audio-file.ts"
+  },
+  "scripts": {
+    "dev": "trigger dev",
+    "deploy": "trigger deploy",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@trackzone/audio": "workspace:*",
+    "@trackzone/database": "workspace:*",
+    "@trackzone/storage": "workspace:*",
+    "@trackzone/types": "workspace:*",
+    "@trigger.dev/sdk": "^4.5.15",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@trackzone/config": "workspace:*",
+    "@trigger.dev/build": "^4.5.15",
+    "eslint": "^9.39.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

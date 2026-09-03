@@ -25,6 +25,7 @@
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.114.0",
     "@tanstack/react-query": "^5.102.8",
+    "@trigger.dev/sdk": "^4.5.15",
     "@trackzone/database": "workspace:*",
     "@trackzone/storage": "workspace:*",
     "@trackzone/types": "workspace:*",
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@trackzone/config": "workspace:*",
+    "@trackzone/worker": "workspace:*",
     "@types/node": "^22.10.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
