@@ -11,7 +11,7 @@ import type { Database } from '@trackzone/types';
  * authorization checks in the route handlers.
  */
 
-const WORKSPACE_PREFIXES = ['/library', '/collections', '/settings'];
+const WORKSPACE_PREFIXES = ['/library', '/collections', '/settings', '/shared'];
 const AUTH_ROUTES = ['/sign-in', '/sign-up'];
 
 export async function proxy(request: NextRequest) {

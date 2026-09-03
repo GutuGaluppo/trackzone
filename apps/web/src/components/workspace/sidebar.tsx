@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Folder, HardDrive, Heart, Library, ListMusic, Plus, Star } from 'lucide-react';
+import { Folder, HardDrive, Heart, Library, ListMusic, Plus, Star, Users2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItemProps {
@@ -54,6 +54,7 @@ export function Sidebar({ collections }: { collections: SidebarCollection[] }) {
       <NavItem href="/library?scope=recent" label="Recently Added" icon={ListMusic} />
       <NavItem href="/library?scope=favorites" label="Favorites" icon={Heart} />
       <NavItem href="/library?scope=unsorted" label="Unsorted" icon={Star} />
+      <NavItem href="/shared" label="Shared with me" icon={Users2} />
 
       <SectionLabel>Sources</SectionLabel>
       <NavItem href="/library?source=local" label="Local Files" icon={HardDrive} />

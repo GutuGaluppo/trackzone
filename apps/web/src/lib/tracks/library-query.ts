@@ -11,7 +11,7 @@ export interface LibraryQueryOptions {
   search?: string;
 }
 
-const LIBRARY_COLUMNS =
+export const LIBRARY_COLUMNS =
   'id, owner_id, title, artist_name, album_name, artwork_url, duration_ms, visibility, allow_download, favorite, created_at, updated_at, owner_username, owner_display_name, audio_file_id, original_filename, mime_type, codec, file_size, sample_rate, bit_depth, bitrate, channels, processing_status, processing_error, source_providers';
 
 /**
@@ -87,4 +87,33 @@ async function queryUnsorted(
   const { data, error } = await query;
   if (error) throw error;
   return data;
+}
+
+/**
+ * Tracks explicitly shared with this user (docs §6: shared = owner + grantees).
+ * Two-step, same pattern as queryUnsorted: fetch the grant rows, then the
+ * track rows they point at, ordered by when the grant was made.
+ */
+export async function querySharedWithMe(
+  supabase: Awaited<ReturnType<typeof createServerSupabase>>,
+  userId: string,
+): Promise<LibraryTrack[]> {
+  const { data: grants, error: grantError } = await supabase
+    .from('track_access')
+    .select('track_id, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (grantError) throw grantError;
+  if (grants.length === 0) return [];
+
+  const trackIds = grants.map((g) => g.track_id);
+  const { data, error } = await supabase
+    .from('library_tracks')
+    .select(LIBRARY_COLUMNS)
+    .in('id', trackIds);
+  if (error) throw error;
+
+  const byId = new Map(data.map((track) => [track.id, track]));
+  return grants.map((g) => byId.get(g.track_id)).filter((t): t is LibraryTrack => t != null);
 }
