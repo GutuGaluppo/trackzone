@@ -80,14 +80,26 @@ export const POST = route(async (request: NextRequest) => {
     throw audioError;
   }
 
+  // A bulk insert() builds one VALUES clause across the whole array: any key
+  // missing from one object but present on another is sent as an explicit
+  // NULL for that row (PostgREST does not fall back to the column default
+  // per-row), so every object here must specify the same full set of keys.
   const { error: sourceError } = await supabase.from('track_sources').insert([
-    { track_id: track.id, provider: 'trackzone', audio_file_id: audioFile.id, status: 'available' },
+    {
+      track_id: track.id,
+      provider: 'trackzone',
+      provider_file_id: null,
+      audio_file_id: audioFile.id,
+      source_metadata: {},
+      status: 'available',
+    },
     {
       track_id: track.id,
       provider: 'local',
       provider_file_id: null,
-      status: 'available',
+      audio_file_id: null,
       source_metadata: { original_filename: filename },
+      status: 'available',
     },
   ]);
 
