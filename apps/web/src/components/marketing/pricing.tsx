@@ -19,8 +19,8 @@ const TIERS: Tier[] = [
     features: [
       'Connect unlimited sources',
       'Organize your library',
-      'Basic metadata',
       'Preview & playback',
+      'Basic metadata',
     ],
     cta: 'Get started',
   },
@@ -29,12 +29,12 @@ const TIERS: Tier[] = [
     price: '€8',
     cadence: '/ month',
     features: [
-      'TrackZone storage',
+      '100 GB TrackZone Storage',
       'Automatic backup',
       'Duplicate detection',
-      'Lossless transfer',
       'Advanced metadata',
       'Batch operations',
+      'Priority support',
     ],
     cta: 'Start Pro trial',
     highlighted: true,
@@ -44,10 +44,11 @@ const TIERS: Tier[] = [
     price: '€16',
     cadence: '/ month',
     features: [
-      'Larger storage allocation',
+      '1 TB TrackZone Storage',
       'All Pro features',
-      'Collaboration',
-      'Professional workflows',
+      'Team collaboration',
+      'Custom workflows',
+      'Early access features',
     ],
     cta: 'Upgrade to Studio',
   },
@@ -59,34 +60,40 @@ const TIERS: Tier[] = [
  */
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-ink text-paper py-20">
-      <div className="mx-auto max-w-6xl px-6">
-        <p className="label-plate text-warm-gray">Simple pricing.</p>
-        <h2 className="text-paper mt-2 text-2xl font-medium">Powerful value.</h2>
+    <section id="pricing" className="bg-ink text-paper py-20 md:py-28">
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 md:grid-cols-[minmax(0,0.32fr)_minmax(0,0.68fr)] md:items-start">
+        <h2 className="text-paper text-3xl font-bold leading-[1.05] tracking-[-0.02em]">
+          Simple pricing.
+          <br />
+          Powerful value.
+        </h2>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           {TIERS.map((tier) => (
             <div
               key={tier.name}
               className={cn(
-                'rounded-md border p-6',
-                tier.highlighted ? 'border-signal bg-white/5' : 'border-white/10',
+                'flex flex-col rounded-lg border p-6',
+                tier.highlighted ? 'border-signal bg-white/[0.04]' : 'border-white/12',
               )}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-paper text-sm font-medium">{tier.name}</span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-paper text-sm font-semibold uppercase tracking-[0.1em]">
+                  {tier.name}
+                </span>
                 {tier.highlighted ? (
-                  <span className="bg-signal text-2xs rounded-full px-2 py-0.5 font-medium text-white">
+                  <span className="border-olive text-olive text-2xs rounded-full border px-2 py-0.5 font-medium uppercase tracking-[0.1em]">
                     Most popular
                   </span>
                 ) : null}
               </div>
-              <p className="tabular mt-3">
-                <span className="text-paper text-2xl font-medium">{tier.price}</span>
+
+              <p className="tabular mt-4">
+                <span className="text-paper text-2xl font-semibold">{tier.price}</span>
                 <span className="text-warm-gray text-xs"> {tier.cadence}</span>
               </p>
 
-              <ul className="mt-5 space-y-2">
+              <ul className="mt-5 flex-1 space-y-2.5">
                 {tier.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-xs text-white/70">
                     <Check className="text-olive mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -98,10 +105,10 @@ export function Pricing() {
               <Link
                 href="/sign-up"
                 className={cn(
-                  'mt-6 block rounded-full px-4 py-2 text-center text-xs font-medium',
+                  'text-2xs mt-6 block rounded-full px-4 py-2.5 text-center font-semibold uppercase tracking-[0.12em] transition-colors',
                   tier.highlighted
                     ? 'bg-signal hover:bg-signal-dim text-white'
-                    : 'text-paper border border-white/15 hover:bg-white/5',
+                    : 'text-paper border border-white/20 hover:bg-white/5',
                 )}
               >
                 {tier.cta}

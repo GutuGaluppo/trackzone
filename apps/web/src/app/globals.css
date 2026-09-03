@@ -38,6 +38,10 @@
   /* Marketing surfaces (light) --------------------------------------------- */
   --color-paper-2: #eae6dc;
   --color-paper-line: #d9d3c6;
+  /* Neutral studio ground behind the hero hardware render — matched to the
+   * KOSMA device photography so the faceplates sit on it seamlessly
+   * (docs LandingPageReference.png). */
+  --color-paper-ground: #d7d6d3;
 
   --color-danger: #e0563c;
 
