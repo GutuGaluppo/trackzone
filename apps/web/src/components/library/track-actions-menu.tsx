@@ -2,9 +2,8 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { FolderPlus, MoreHorizontal, Trash2 } from 'lucide-react';
+import { FolderPlus, MoreHorizontal, Share2, Trash2 } from 'lucide-react';
 import type { TrackVisibility } from '@trackzone/types';
-import { VISIBILITY_LABELS } from '@trackzone/types';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,8 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
-const VISIBILITIES: TrackVisibility[] = ['private', 'shared', 'public'];
+import { ShareDialog } from '@/components/library/share-dialog';
 
 export interface CollectionOption {
   id: string;
@@ -34,11 +32,13 @@ export interface CollectionOption {
 
 export function TrackActionsMenu({
   trackId,
+  trackTitle,
   visibility,
   favorite,
   collections = [],
 }: {
   trackId: string;
+  trackTitle: string;
   visibility: TrackVisibility;
   favorite: boolean;
   collections?: CollectionOption[];
@@ -46,6 +46,7 @@ export function TrackActionsMenu({
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [shareOpen, setShareOpen] = React.useState(false);
 
   async function toggleFavorite() {
     setPending(true);
@@ -58,7 +59,7 @@ export function TrackActionsMenu({
     router.refresh();
   }
 
-  async function setVisibility(next: TrackVisibility) {
+  async function setVisibility(next: 'private' | 'public') {
     setPending(true);
     await fetch(`/api/tracks/${trackId}/visibility`, {
       method: 'PUT',
@@ -119,16 +120,24 @@ export function TrackActionsMenu({
 
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Visibility</DropdownMenuLabel>
-          {VISIBILITIES.map((option) => (
-            <DropdownMenuItem
-              key={option}
-              disabled={option === visibility}
-              onSelect={() => void setVisibility(option)}
-            >
-              {VISIBILITY_LABELS[option]}
-              {option === visibility ? ' · current' : ''}
-            </DropdownMenuItem>
-          ))}
+          <DropdownMenuItem
+            disabled={visibility === 'private'}
+            onSelect={() => void setVisibility('private')}
+          >
+            Private
+            {visibility === 'private' ? ' · current' : ''}
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setShareOpen(true)}>
+            <Share2 className="h-3.5 w-3.5" aria-hidden />
+            Share…{visibility === 'shared' ? ' · current' : ''}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={visibility === 'public'}
+            onSelect={() => void setVisibility('public')}
+          >
+            Public
+            {visibility === 'public' ? ' · current' : ''}
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
           <AlertDialogTrigger asChild>
@@ -157,6 +166,13 @@ export function TrackActionsMenu({
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
+
+      <ShareDialog
+        trackId={trackId}
+        trackTitle={trackTitle}
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+      />
     </AlertDialog>
   );
 }

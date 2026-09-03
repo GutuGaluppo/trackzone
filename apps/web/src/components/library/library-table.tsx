@@ -107,6 +107,7 @@ export function LibraryTable({
               <td className="py-2 pr-3">
                 <TrackActionsMenu
                   trackId={track.id}
+                  trackTitle={track.title}
                   visibility={track.visibility}
                   favorite={track.favorite}
                   collections={collections}
