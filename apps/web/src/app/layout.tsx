@@ -23,6 +23,10 @@ export const metadata: Metadata = {
   },
   description:
     'TrackZone brings every track, sample and idea from every platform into one place. Organize. Listen. Move. Backup. Yours.',
+  icons: {
+    icon: '/brand/favicon.png',
+    apple: '/brand/favicon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

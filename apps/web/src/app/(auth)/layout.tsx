@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Logo } from '@/components/brand/logo';
 
 /**
  * The auth screen is the threshold between the warm marketing site and the
@@ -8,9 +8,7 @@ import Link from 'next/link';
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-paper flex min-h-dvh flex-col items-center justify-center px-4">
-      <Link href="/" className="text-ink mb-8 font-mono text-xs tracking-[0.2em]">
-        TRACKZONE<span className="text-signal">.</span>
-      </Link>
+      <Logo href="/" className="mb-8" wordmarkClassName="text-ink" />
       <div
         data-environment="workspace"
         className="border-line bg-surface-1 w-full max-w-sm rounded-md border p-6 shadow-sm"

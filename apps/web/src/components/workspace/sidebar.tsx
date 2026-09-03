@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Folder, HardDrive, Heart, Library, ListMusic, Plus, Star, Users2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/brand/logo';
 
 interface NavItemProps {
   href: string;
@@ -45,9 +46,7 @@ export function Sidebar({ collections }: { collections: SidebarCollection[] }) {
       aria-label="Library navigation"
       className="border-line bg-surface-1 scrollbar-slim flex w-52 shrink-0 flex-col overflow-y-auto border-r p-3"
     >
-      <Link href="/library" className="text-fg mb-4 px-2 font-mono text-xs tracking-[0.2em]">
-        TRACKZONE<span className="text-signal">.</span>
-      </Link>
+      <Logo href="/library" className="mb-4 px-2" wordmarkClassName="text-fg" />
 
       <SectionLabel>Library</SectionLabel>
       <NavItem href="/library" label="All Tracks" icon={Library} exact />
