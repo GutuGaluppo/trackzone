@@ -15,6 +15,12 @@ const clientSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default('http://localhost:3000'),
 });
 
+/** Optional string that treats an empty value as "not set". */
+const optionalSecret = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.string().min(1).optional(),
+);
+
 const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   R2_ACCOUNT_ID: z.string().min(1, 'R2_ACCOUNT_ID is required'),
@@ -24,6 +30,17 @@ const serverSchema = z.object({
   R2_ENDPOINT: z.string().url().optional(),
   /** Optional: without it, background processing enqueue is skipped, not fatal. */
   TRIGGER_SECRET_KEY: z.string().min(1).optional(),
+
+  /**
+   * SoundCloud connection (docs §20 Phase 7). All three must be present for the
+   * integration to switch on; any missing (or blank) and `soundcloudConfig()`
+   * returns null and the feature stays dormant. `PROVIDER_CREDENTIALS_KEY` is a
+   * 32-byte key (base64 or hex) used to encrypt stored OAuth tokens at rest.
+   * `''` is normalized to "unset" so a blank line in `.env` doesn't fail boot.
+   */
+  SOUNDCLOUD_CLIENT_ID: optionalSecret,
+  SOUNDCLOUD_CLIENT_SECRET: optionalSecret,
+  PROVIDER_CREDENTIALS_KEY: optionalSecret,
 });
 
 export type ClientEnv = z.infer<typeof clientSchema>;

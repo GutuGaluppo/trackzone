@@ -139,6 +139,19 @@ type ImportItemRow = {
   updated_at: string;
 };
 
+/**
+ * Lives in the `private` schema, which has RLS enabled and **no policy** — only
+ * the service role can touch it. `encrypted_credentials` is an opaque blob
+ * (AES-256-GCM over the provider's OAuth tokens); the database never interprets it.
+ */
+type ProviderCredentialRow = {
+  connection_id: string;
+  encrypted_credentials: string;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type LibraryTrackRow = {
   id: string;
   owner_id: string;
@@ -391,6 +404,15 @@ export interface Database {
       import_status: ImportStatus;
       import_item_status: ImportItemStatus;
     };
+    CompositeTypes: Record<never, never>;
+  };
+  private: {
+    Tables: {
+      provider_credentials: Table<ProviderCredentialRow, 'expires_at'>;
+    };
+    Views: Record<never, never>;
+    Functions: Record<never, never>;
+    Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
   };
 }

@@ -1,19 +1,41 @@
 import type { Metadata } from 'next';
 import { requireUser } from '@/lib/auth/require-user';
+import { soundcloudConfig } from '@/lib/providers/soundcloud';
 import { ProfileForm } from '@/components/settings/profile-form';
+import {
+  ConnectionsPanel,
+  type ConnectionNotice,
+} from '@/components/settings/connections-panel';
 
 export const metadata: Metadata = { title: 'Settings' };
 
-export default async function SettingsPage() {
+interface SettingsPageProps {
+  searchParams: Promise<{ connected?: string; error?: string }>;
+}
+
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+  const { connected, error } = await searchParams;
   const { user, supabase } = await requireUser('/settings');
 
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('username, display_name')
-    .eq('id', user.id)
-    .single();
+  const [{ data: profile, error: profileError }, { data: connection, error: connectionError }] =
+    await Promise.all([
+      supabase.from('profiles').select('username, display_name').eq('id', user.id).single(),
+      supabase
+        .from('provider_connections')
+        .select('id, provider_account_id, display_name, status, created_at, last_synced_at')
+        .eq('user_id', user.id)
+        .eq('provider', 'soundcloud')
+        .maybeSingle(),
+    ]);
 
-  if (error) throw error;
+  if (profileError) throw profileError;
+  if (connectionError) throw connectionError;
+
+  const notice: ConnectionNotice = connected
+    ? { kind: 'success', provider: connected }
+    : error
+      ? { kind: 'error', code: error }
+      : null;
 
   return (
     <div className="flex h-full flex-col">
@@ -24,6 +46,12 @@ export default async function SettingsPage() {
 
       <div className="scrollbar-slim min-h-0 flex-1 overflow-y-auto p-5">
         <ProfileForm username={profile.username} displayName={profile.display_name} />
+
+        <ConnectionsPanel
+          soundcloudConfigured={soundcloudConfig() !== null}
+          connection={connection ?? null}
+          notice={notice}
+        />
       </div>
     </div>
   );
