@@ -47,4 +47,5 @@ left join public.audio_files af on af.track_id = t.id and af.is_original;
 comment on view public.library_tracks is
   'Read model for the Library list. Never exposes storage_key: bytes are only reachable through a signed URL issued by the API after an authorization check.';
 
-grant select on public.library_tracks to authenticated;
+-- anon included to match the underlying tables' public-track policies.
+grant select on public.library_tracks to authenticated, anon;

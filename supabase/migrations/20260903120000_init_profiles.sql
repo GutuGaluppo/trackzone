@@ -54,11 +54,14 @@ create trigger profiles_set_updated_at
 
 alter table public.profiles enable row level security;
 
--- Profiles are readable by any signed-in user: sharing a track with someone
--- requires being able to find them, and public tracks need an author name.
-create policy "profiles are readable by authenticated users"
+-- Sharing a track requires finding someone by username, and a public track
+-- needs an author name — readable by anyone, including anon: profiles carry
+-- no sensitive fields (no email), and library_tracks INNER JOINs profiles, so
+-- without anon here a public track would vanish from that view for anonymous
+-- readers even though the tracks policy itself allows them.
+create policy "profiles are readable by anyone"
   on public.profiles for select
-  to authenticated
+  to authenticated, anon
   using (true);
 
 create policy "users insert their own profile"

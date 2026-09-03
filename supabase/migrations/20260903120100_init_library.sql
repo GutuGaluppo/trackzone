@@ -203,10 +203,24 @@ alter table public.audio_files   enable row level security;
 alter table public.track_sources enable row level security;
 
 -- tracks -------------------------------------------------------------------
+-- The owner check is inlined (not folded into track_is_readable_by) so that
+-- INSERT ... RETURNING sees it immediately: track_is_readable_by runs its own
+-- SELECT against `tracks`, which — being a separate query within the same
+-- statement's snapshot — cannot see a row this same statement just inserted.
+-- A direct column comparison against the row being returned has no such
+-- snapshot problem. Without this, `.insert(...).select()` as the owner
+-- fails RLS on a brand new track.
+-- `anon` is included: a public track is readable without an account (the
+-- app UI never exercises this today — every workspace route requires sign-in
+-- — but the authorization semantics in @trackzone/database already promise
+-- it, and future public-track URLs need the database to already agree).
 create policy "tracks readable by owner, grantees and everyone when public"
   on public.tracks for select
-  to authenticated
-  using (public.track_is_readable_by(id, (select auth.uid())));
+  to authenticated, anon
+  using (
+    owner_id = (select auth.uid())
+    or public.track_is_readable_by(id, (select auth.uid()))
+  );
 
 create policy "tracks insertable by owner"
   on public.tracks for insert
@@ -257,7 +271,7 @@ create policy "grants revocable by the track owner or the grantee"
 -- bytes require a short-lived signed URL issued after an authorization check.
 create policy "audio files readable with the track"
   on public.audio_files for select
-  to authenticated
+  to authenticated, anon
   using (public.track_is_readable_by(track_id, (select auth.uid())));
 
 create policy "audio files writable by the track owner"
@@ -279,7 +293,7 @@ create policy "audio files deletable by the track owner"
 -- track_sources ------------------------------------------------------------
 create policy "sources readable with the track"
   on public.track_sources for select
-  to authenticated
+  to authenticated, anon
   using (public.track_is_readable_by(track_id, (select auth.uid())));
 
 create policy "sources writable by the track owner"

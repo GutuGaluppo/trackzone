@@ -69,9 +69,11 @@ $$;
 alter table public.collections       enable row level security;
 alter table public.collection_tracks enable row level security;
 
+-- anon included: a public collection is readable without an account, same
+-- reasoning as the tracks policy in 0002.
 create policy "collections readable by owner or when public"
   on public.collections for select
-  to authenticated
+  to authenticated, anon
   using (owner_id = (select auth.uid()) or visibility = 'public');
 
 create policy "collections insertable by owner"
@@ -94,7 +96,7 @@ create policy "collections deletable by owner"
 -- access: reading the track itself still goes through track_is_readable_by.
 create policy "collection membership readable with the collection"
   on public.collection_tracks for select
-  to authenticated
+  to authenticated, anon
   using (public.collection_is_readable_by(collection_id, (select auth.uid())));
 
 -- Adding a track requires owning the collection AND being allowed to read the
