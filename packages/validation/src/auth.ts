@@ -24,15 +24,22 @@ export const signInSchema = z.object({
   password: z.string().min(1, 'Enter your password'),
 });
 
+// No .min(1): the field is optional, and an unfilled text input submits ''
+// rather than undefined — react-hook-form has no way to send "not present"
+// for a plain <input>. A .min(1) here would reject that '' as invalid and
+// silently block submission for the common case of leaving it blank. An
+// empty display name is already treated as "not provided" by callers (both
+// the sign-up handler and the profile-update route fall back to null/omit
+// on a falsy value), so there is nothing left for a length floor to guard.
 export const signUpSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  displayName: z.string().trim().min(1).max(80).optional(),
+  displayName: z.string().trim().max(80).optional(),
 });
 
 export const updateProfileSchema = z.object({
   username: usernameSchema.optional(),
-  displayName: z.string().trim().min(1).max(80).nullable().optional(),
+  displayName: z.string().trim().max(80).nullable().optional(),
 });
 
 export type SignInInput = z.infer<typeof signInSchema>;

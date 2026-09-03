@@ -53,6 +53,7 @@ export function SignUpForm() {
         label="Display name"
         htmlFor="displayName"
         hint="Optional — you can change this later."
+        error={errors.displayName?.message}
       >
         <Input id="displayName" autoComplete="name" {...register('displayName')} />
       </Field>
