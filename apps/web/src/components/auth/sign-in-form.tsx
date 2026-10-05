@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signInSchema, type SignInInput } from '@trackzone/validation';
 import { createClient } from '@/lib/supabase/client';
+import { authErrorMessage } from '@/lib/auth/error-message';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
 
@@ -22,16 +23,20 @@ export function SignInForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword(values);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword(values);
 
-    if (error) {
-      setFormError('Incorrect email or password.');
-      return;
+      if (error) {
+        setFormError(authErrorMessage(error, 'sign-in'));
+        return;
+      }
+
+      router.replace(searchParams.get('next') || '/library');
+      router.refresh();
+    } catch (error) {
+      setFormError(authErrorMessage(error, 'sign-in'));
     }
-
-    router.replace(searchParams.get('next') || '/library');
-    router.refresh();
   });
 
   return (

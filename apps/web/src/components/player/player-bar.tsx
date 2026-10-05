@@ -8,6 +8,7 @@ import { formatSeconds } from '@/lib/format';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AudioPlayback } from '@/lib/audio-playback';
 
 /**
  * The persistent player (docs §10, §16): always mounted in the workspace
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
  */
 export function PlayerBar() {
   const audioRef = React.useRef<HTMLAudioElement>(null);
+  const playbackRef = React.useRef<AudioPlayback | null>(null);
 
   const queue = usePlayerStore((s) => s.queue);
   const currentIndex = usePlayerStore((s) => s.currentIndex);
@@ -29,45 +31,64 @@ export function PlayerBar() {
   const previous = usePlayerStore((s) => s.previous);
   const seek = usePlayerStore((s) => s.seek);
   const setVolume = usePlayerStore((s) => s.setVolume);
-  const setProgress = usePlayerStore((s) => s.setProgress);
-  const setPlaying = usePlayerStore((s) => s.setPlaying);
 
   const track = queue[currentIndex] ?? null;
   const hasNext = currentIndex > -1 && currentIndex < queue.length - 1;
   const hasPrevious = currentIndex > 0;
+  const hasTrack = track !== null;
 
   const { data: playback, isError, error } = usePlaybackUrl(track?.id ?? null);
 
-  // New track (or a re-request for the same one): load the signed URL and
-  // start playback from zero rather than resuming mid-buffer of the old file.
+  // Attach once to the persistent audio element. Read current intent directly
+  // from the store so asynchronous media events cannot use a previous track.
   React.useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !playback) return;
-    audio.src = playback.url;
-    audio.currentTime = 0;
-    if (playing) void audio.play().catch(() => setPlaying(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run when the track/URL changes
-  }, [playback?.url, requestId]);
+    if (!audio) return;
+    const controller = new AudioPlayback(audio, {
+      getState: () => {
+        const state = usePlayerStore.getState();
+        return {
+          trackId: state.currentTrack()?.id ?? null,
+          requestId: state.requestId,
+          playing: state.playing,
+        };
+      },
+      onProgress: (time, duration) => usePlayerStore.getState().setProgress(time, duration),
+      onPlayingChange: (value) => usePlayerStore.getState().setPlaying(value),
+      onEnded: () => {
+        const state = usePlayerStore.getState();
+        if (state.currentIndex < state.queue.length - 1) state.next();
+        else state.setPlaying(false);
+      },
+    });
+    playbackRef.current = controller;
+    return () => {
+      controller.dispose();
+      playbackRef.current = null;
+    };
+  }, [hasTrack]);
+
+  const trackId = track?.id;
+  const playbackUrl = playback?.url;
+  React.useEffect(() => {
+    const controller = playbackRef.current;
+    if (!controller) return;
+    if (trackId && playbackUrl) controller.load({ trackId, requestId, url: playbackUrl });
+    else controller.clear();
+  }, [trackId, playbackUrl, requestId]);
 
   React.useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !playback) return;
-    if (playing) void audio.play().catch(() => setPlaying(false));
-    else audio.pause();
-  }, [playing, playback, setPlaying]);
+    playbackRef.current?.syncPlaying();
+  }, [playing]);
 
   React.useEffect(() => {
     const audio = audioRef.current;
     if (audio) audio.volume = volume;
-  }, [volume]);
+  }, [volume, hasTrack]);
 
   // The store is the source of truth for a user-initiated seek.
   React.useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || Number.isNaN(audio.duration)) return;
-    if (Math.abs(audio.currentTime - currentTime) > 0.75) {
-      audio.currentTime = currentTime;
-    }
+    playbackRef.current?.seek(currentTime);
   }, [currentTime]);
 
   if (!track) return null;
@@ -77,19 +98,7 @@ export function PlayerBar() {
       data-environment="workspace"
       className="border-line bg-surface-1 flex h-16 items-center gap-4 border-t px-4"
     >
-      <audio
-        ref={audioRef}
-        preload="metadata"
-        onTimeUpdate={(e) =>
-          setProgress(e.currentTarget.currentTime, e.currentTarget.duration || 0)
-        }
-        onLoadedMetadata={(e) =>
-          setProgress(e.currentTarget.currentTime, e.currentTarget.duration || 0)
-        }
-        onEnded={() => (hasNext ? next() : setPlaying(false))}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-      />
+      <audio ref={audioRef} preload="metadata" />
 
       <div className="flex min-w-40 flex-col overflow-hidden">
         <span className="text-fg truncate text-xs font-medium">{track.title}</span>

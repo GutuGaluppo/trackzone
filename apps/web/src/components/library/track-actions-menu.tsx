@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { FolderPlus, MoreHorizontal, Share2, Trash2 } from 'lucide-react';
+import { FolderPlus, MoreHorizontal, Pencil, Share2, Trash2 } from 'lucide-react';
 import type { TrackVisibility } from '@trackzone/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { ShareDialog } from '@/components/library/share-dialog';
+import { EditTrackDialog } from '@/components/library/edit-track-dialog';
 
 export interface CollectionOption {
   id: string;
@@ -33,12 +34,16 @@ export interface CollectionOption {
 export function TrackActionsMenu({
   trackId,
   trackTitle,
+  artistName,
+  albumName,
   visibility,
   favorite,
   collections = [],
 }: {
   trackId: string;
   trackTitle: string;
+  artistName: string | null;
+  albumName: string | null;
   visibility: TrackVisibility;
   favorite: boolean;
   collections?: CollectionOption[];
@@ -47,6 +52,7 @@ export function TrackActionsMenu({
   const [pending, setPending] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [editOpen, setEditOpen] = React.useState(false);
 
   async function toggleFavorite() {
     setPending(true);
@@ -98,6 +104,10 @@ export function TrackActionsMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+            <Pencil className="h-3.5 w-3.5" aria-hidden />
+            Edit details…
+          </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => void toggleFavorite()}>
             {favorite ? 'Remove from favorites' : 'Add to favorites'}
           </DropdownMenuItem>
@@ -173,6 +183,15 @@ export function TrackActionsMenu({
         open={shareOpen}
         onOpenChange={setShareOpen}
       />
+      {editOpen ? (
+        <EditTrackDialog
+          trackId={trackId}
+          trackTitle={trackTitle}
+          artistName={artistName}
+          albumName={albumName}
+          onOpenChange={setEditOpen}
+        />
+      ) : null}
     </AlertDialog>
   );
 }

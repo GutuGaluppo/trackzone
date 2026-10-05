@@ -10,6 +10,8 @@ const METADATA: ExtractedAudioMetadata = {
   bitDepth: 24,
   bitrate: 2_304_000,
   channels: 2,
+  artistName: null,
+  albumName: null,
 };
 
 describe('toReadyPatch', () => {
@@ -24,6 +26,17 @@ describe('toReadyPatch', () => {
   it('mirrors duration onto the track so the Library can sort/display it', () => {
     const { track } = toReadyPatch(METADATA);
     expect(track.duration_ms).toBe(271_000);
+  });
+
+  it('copies available artist and album tags without inventing missing tags', () => {
+    const { track } = toReadyPatch({
+      ...METADATA,
+      artistName: 'Tagged artist',
+      albumName: 'Tagged album',
+    });
+    expect(track.artist_name).toBe('Tagged artist');
+    expect(track.album_name).toBe('Tagged album');
+    expect(toReadyPatch(METADATA).track).not.toHaveProperty('artist_name');
   });
 });
 

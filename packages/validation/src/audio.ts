@@ -2,13 +2,14 @@
  * Allow-list of audio the platform accepts.
  *
  * The browser-supplied MIME type is a hint, never proof: the extension and the
- * declared type must agree here, and the worker re-derives the real codec with
- * ffprobe before a file is marked `ready`.
+ * declared type must agree here, and the worker verifies the audio content
+ * before a file is marked `ready`.
  */
 export const ALLOWED_AUDIO_TYPES = {
   'audio/wav': ['wav'],
   'audio/x-wav': ['wav'],
   'audio/wave': ['wav'],
+  'audio/vnd.wave': ['wav'],
   'audio/aiff': ['aif', 'aiff'],
   'audio/x-aiff': ['aif', 'aiff'],
   'audio/flac': ['flac'],
@@ -40,6 +41,24 @@ export function isAllowedMimeType(value: string): value is AllowedAudioMimeType 
 export function extensionOf(filename: string): string {
   const dot = filename.lastIndexOf('.');
   return dot === -1 ? '' : filename.slice(dot + 1).toLowerCase();
+}
+
+/** File.type can be empty or generic. This is a hint; the worker still verifies bytes. */
+export function resolveAudioMimeType(
+  filename: string,
+  browserType: string,
+): AllowedAudioMimeType | null {
+  const type = browserType.trim().toLowerCase().split(';')[0]?.trim() ?? '';
+  if (isAllowedMimeType(type)) return mimeMatchesExtension(type, filename) ? type : null;
+  if (type !== '' && type !== 'application/octet-stream' && type !== 'binary/octet-stream')
+    return null;
+
+  const extension = extensionOf(filename);
+  for (const [mimeType, extensions] of Object.entries(ALLOWED_AUDIO_TYPES)) {
+    if ((extensions as readonly string[]).includes(extension))
+      return mimeType as AllowedAudioMimeType;
+  }
+  return null;
 }
 
 /** The declared MIME type and the file extension must describe the same thing. */

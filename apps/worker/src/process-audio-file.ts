@@ -1,4 +1,4 @@
-import { extractAudioMetadata, toFailedPatch, toReadyPatch } from '@trackzone/audio';
+import { toFailedPatch, toReadyPatch, type ExtractedAudioMetadata } from '@trackzone/audio';
 
 /**
  * The processing pipeline (docs §9), with I/O injected so it's testable
@@ -11,12 +11,13 @@ export interface AudioFileRecord {
   track_id: string;
   storage_key: string;
   mime_type: string | null;
+  file_size: number | null;
 }
 
 export interface ProcessAudioFileDeps {
   loadAudioFile: (audioFileId: string) => Promise<AudioFileRecord | null>;
   markProcessing: (audioFileId: string) => Promise<void>;
-  downloadBytes: (storageKey: string) => Promise<Uint8Array>;
+  loadMetadata: (record: AudioFileRecord) => Promise<ExtractedAudioMetadata>;
   applyReadyPatch: (
     patch: ReturnType<typeof toReadyPatch>,
     audioFileId: string,
@@ -38,11 +39,7 @@ export async function processAudioFile(
   await deps.markProcessing(audioFileId);
 
   try {
-    const bytes = await deps.downloadBytes(record.storage_key);
-    const metadata = await extractAudioMetadata(
-      bytes,
-      record.mime_type ?? 'application/octet-stream',
-    );
+    const metadata = await deps.loadMetadata(record);
     await deps.applyReadyPatch(toReadyPatch(metadata), audioFileId, record.track_id);
   } catch (error) {
     await deps.applyFailedPatch(toFailedPatch(error), audioFileId);

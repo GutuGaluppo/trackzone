@@ -16,6 +16,15 @@ export interface R2Config {
   bucket: string;
   /** Overrides the derived endpoint; useful for local S3-compatible testing. */
   endpoint?: string;
+  /** R2 uses auto; local Supabase S3 uses local. */
+  region?: string;
+}
+
+export class StorageConfigurationError extends Error {
+  constructor() {
+    super('Object storage credentials are missing or still contain example values.');
+    this.name = 'StorageConfigurationError';
+  }
 }
 
 /**
@@ -26,6 +35,13 @@ export interface R2Config {
  * tiers. The bucket itself is private — no object here is ever world-readable.
  */
 export function createR2Storage(config: R2Config): ObjectStorage {
+  if (
+    [config.accountId, config.accessKeyId, config.secretAccessKey, config.bucket].some(
+      (value) => !value.trim() || /^(?:your-|placeholder|changeme)/i.test(value),
+    )
+  ) {
+    throw new StorageConfigurationError();
+  }
   const endpoint =
     config.endpoint?.replace(/\/+$/, '') ?? `https://${config.accountId}.r2.cloudflarestorage.com`;
 
@@ -33,7 +49,7 @@ export function createR2Storage(config: R2Config): ObjectStorage {
     accessKeyId: config.accessKeyId,
     secretAccessKey: config.secretAccessKey,
     service: 's3',
-    region: 'auto',
+    region: config.region ?? 'auto',
   });
 
   const objectUrl = (key: string) =>

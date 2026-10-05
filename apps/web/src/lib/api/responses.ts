@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { AuthorizationError, type DenyReason } from '@trackzone/database';
+import { StorageConfigurationError } from '@trackzone/storage';
 
 export interface ApiError {
   error: { code: string; message: string; details?: unknown };
@@ -64,6 +65,14 @@ export function route<Args extends unknown[]>(
     try {
       return await handler(...args);
     } catch (error) {
+      if (error instanceof StorageConfigurationError) {
+        console.error('[storage] configuration unavailable', { message: error.message });
+        return fail(
+          503,
+          'storage_unavailable',
+          'Audio storage is unavailable. Please try again later.',
+        );
+      }
       if (error instanceof AuthorizationError) {
         console.warn('[authz] denied', { reason: error.reason });
         return fail(DENY_STATUS[error.reason], `authz_${error.reason}`, DENY_MESSAGE[error.reason]);

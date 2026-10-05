@@ -8,6 +8,7 @@ const schema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().min(1),
   R2_BUCKET: z.string().min(1),
   R2_ENDPOINT: z.string().url().optional(),
+  R2_REGION: z.string().min(1).default('auto'),
 });
 
 let cached: z.infer<typeof schema> | null = null;

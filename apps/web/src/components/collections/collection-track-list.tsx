@@ -7,6 +7,7 @@ import { usePlayerStore } from '@/stores/player-store';
 import { formatContainer, formatDuration } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { ProcessingBadge } from '@/components/library/status-badge';
+import { useProcessingRefresh } from '@/hooks/use-processing-refresh';
 
 export function CollectionTrackList({
   collectionId,
@@ -15,6 +16,7 @@ export function CollectionTrackList({
   collectionId: string;
   tracks: LibraryTrack[];
 }) {
+  useProcessingRefresh(tracks);
   const router = useRouter();
   const currentTrackId = usePlayerStore((s) => s.currentTrack()?.id ?? null);
   const playing = usePlayerStore((s) => s.playing);
@@ -91,7 +93,8 @@ export function CollectionTrackList({
                 <ProcessingBadge status={track.processing_status ?? 'ready'} />
               </td>
               <td className="text-fg-muted max-w-40 truncate py-2 pr-3">
-                {track.artist_name ?? '—'}
+                {track.artist_name ??
+                  (track.processing_status === 'ready' ? 'Unknown artist' : '—')}
               </td>
               <td className="text-fg-muted tabular py-2 pr-3 text-right">
                 {formatDuration(track.duration_ms)}

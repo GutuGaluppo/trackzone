@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./trigger/process-audio-file": "./src/trigger/process-audio-file.ts"
+    "./trigger/process-audio-file": "./src/trigger/process-audio-file.ts",
+    "./local-environment": "./src/local-environment.ts"
   },
   "scripts": {
-    "dev": "trigger dev",
+    "dev": "node --experimental-strip-types --env-file=../web/.env.local src/local-worker.ts",
+    "dev:trigger": "trigger dev",
     "deploy": "trigger deploy",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

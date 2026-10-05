@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { extractAudioMetadata } from '@trackzone/audio';
 import { processAudioFile, type AudioFileRecord } from './process-audio-file.ts';
 
 function buildTestWav(): Uint8Array {
@@ -36,6 +37,7 @@ const RECORD: AudioFileRecord = {
   track_id: 'track-1',
   storage_key: 'originals/user-1/audio-1.wav',
   mime_type: 'audio/wav',
+  file_size: 176444,
 };
 
 describe('processAudioFile', () => {
@@ -43,7 +45,7 @@ describe('processAudioFile', () => {
     const deps = {
       loadAudioFile: vi.fn().mockResolvedValue(null),
       markProcessing: vi.fn(),
-      downloadBytes: vi.fn(),
+      loadMetadata: vi.fn(),
       applyReadyPatch: vi.fn(),
       applyFailedPatch: vi.fn(),
     };
@@ -51,14 +53,16 @@ describe('processAudioFile', () => {
     await processAudioFile('missing', deps);
 
     expect(deps.markProcessing).not.toHaveBeenCalled();
-    expect(deps.downloadBytes).not.toHaveBeenCalled();
+    expect(deps.loadMetadata).not.toHaveBeenCalled();
   });
 
   it('marks the file processing, extracts metadata, and applies the ready patch', async () => {
     const deps = {
       loadAudioFile: vi.fn().mockResolvedValue(RECORD),
       markProcessing: vi.fn().mockResolvedValue(undefined),
-      downloadBytes: vi.fn().mockResolvedValue(buildTestWav()),
+      loadMetadata: vi
+        .fn()
+        .mockImplementation(() => extractAudioMetadata(buildTestWav(), 'audio/wav')),
       applyReadyPatch: vi.fn().mockResolvedValue(undefined),
       applyFailedPatch: vi.fn(),
     };
@@ -66,7 +70,7 @@ describe('processAudioFile', () => {
     await processAudioFile('audio-1', deps);
 
     expect(deps.markProcessing).toHaveBeenCalledWith('audio-1');
-    expect(deps.downloadBytes).toHaveBeenCalledWith(RECORD.storage_key);
+    expect(deps.loadMetadata).toHaveBeenCalledWith(RECORD);
     expect(deps.applyFailedPatch).not.toHaveBeenCalled();
 
     expect(deps.applyReadyPatch).toHaveBeenCalledTimes(1);
@@ -83,7 +87,7 @@ describe('processAudioFile', () => {
     const deps = {
       loadAudioFile: vi.fn().mockResolvedValue(RECORD),
       markProcessing: vi.fn().mockResolvedValue(undefined),
-      downloadBytes: vi.fn().mockRejectedValue(new Error('object not found')),
+      loadMetadata: vi.fn().mockRejectedValue(new Error('object not found')),
       applyReadyPatch: vi.fn(),
       applyFailedPatch: vi.fn().mockResolvedValue(undefined),
     };
@@ -102,7 +106,9 @@ describe('processAudioFile', () => {
     const deps = {
       loadAudioFile: vi.fn().mockResolvedValue(RECORD),
       markProcessing: vi.fn().mockResolvedValue(undefined),
-      downloadBytes: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3])),
+      loadMetadata: vi
+        .fn()
+        .mockImplementation(() => extractAudioMetadata(new Uint8Array([1, 2, 3]), 'audio/wav')),
       applyReadyPatch: vi.fn(),
       applyFailedPatch: vi.fn().mockResolvedValue(undefined),
     };

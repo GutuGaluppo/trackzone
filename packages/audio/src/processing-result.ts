@@ -22,6 +22,8 @@ export function toReadyPatch(metadata: ExtractedAudioMetadata): {
     },
     track: {
       duration_ms: metadata.durationMs,
+      ...(metadata.artistName ? { artist_name: metadata.artistName } : {}),
+      ...(metadata.albumName ? { album_name: metadata.albumName } : {}),
     },
   };
 }

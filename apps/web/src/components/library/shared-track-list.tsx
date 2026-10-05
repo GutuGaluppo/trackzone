@@ -8,6 +8,7 @@ import { usePlayerStore } from '@/stores/player-store';
 import { formatContainer, formatDuration } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { ProcessingBadge } from '@/components/library/status-badge';
+import { useProcessingRefresh } from '@/hooks/use-processing-refresh';
 import { SourceRail } from '@/components/library/source-rail';
 import {
   DropdownMenu,
@@ -33,6 +34,7 @@ export function SharedTrackList({
   tracks: LibraryTrack[];
   collections?: CollectionOption[];
 }) {
+  useProcessingRefresh(tracks);
   const router = useRouter();
   const currentTrackId = usePlayerStore((s) => s.currentTrack()?.id ?? null);
   const playing = usePlayerStore((s) => s.playing);

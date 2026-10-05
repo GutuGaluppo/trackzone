@@ -35,7 +35,7 @@ Track, AudioFile and TrackSource are deliberately separate concepts — see
 
 ## Setup
 
-Requires Node 20+, pnpm, Docker (for local Supabase), and accounts for
+Requires Node 22.18+, pnpm, Docker (for local Supabase), and accounts for
 Supabase, Cloudflare R2, and (optional) Trigger.dev.
 
 ```bash
@@ -57,16 +57,41 @@ R2: create a private bucket and an API token with read/write access; there is
 no public bucket policy to configure — every URL the app hands out is signed
 and short-lived.
 
+For local development without Cloudflare credentials, use the S3-compatible
+storage already provided by the local Supabase stack:
+
 ```bash
-pnpm --filter @trackzone/web dev   # apps/web on :3000
+pnpm storage:local
 ```
 
-Background processing (audio metadata extraction) requires a Trigger.dev
-project: `npx trigger.dev@latest init` inside `apps/worker` regenerates
-`trigger.config.ts` with a real project ref, then `pnpm --filter
-@trackzone/worker dev` runs the task locally. Without `TRIGGER_SECRET_KEY`
-configured, uploads still work — tracks just stay in "Queued" instead of
-picking up duration/codec/sample-rate metadata.
+This creates or configures a private `trackzone-audio` bucket and writes local
+S3 credentials, endpoint, and region into `apps/web/.env.local`. It only runs
+when the app points to local Supabase. Restart the web app after running it.
+Files remain in the local Supabase Docker volume; this does not configure
+Cloudflare R2 or copy files to a hosted project. If Supabase was already running
+with the previous 50 MiB storage limit, restart it with `supabase stop` and
+`supabase start` to apply the 2 GiB limit. Keep the Docker volumes to retain data.
+
+```bash
+pnpm --filter @trackzone/web dev   # apps/web on :3000
+pnpm worker:local                # separate process: metadata extraction for local uploads
+# Or start both together:
+pnpm dev
+```
+
+The local worker polls the local database for queued uploads, including those
+created before it was started. It extracts duration, technical metadata, and
+embedded artist/album tags, and the Library refreshes while processing is active.
+It requires local Supabase and local storage and refuses production environments.
+Files without artist/album tags keep those fields empty; the UI shows "Unknown
+artist" after processing. Originals remain untouched. Interrupted local jobs
+can be reclaimed after a ten-minute lease expires.
+
+Hosted processing uses Trigger.dev. Configure a real project in
+`apps/worker/trigger.config.ts`, set `TRIGGER_SECRET_KEY` in the web app, and use
+`pnpm --filter @trackzone/worker dev:trigger` for Trigger.dev development.
+Deploy with `pnpm --filter @trackzone/worker deploy` and configure worker secrets
+there. Queueing failures in hosted environments are shown as failed processing.
 
 ## Commands
 

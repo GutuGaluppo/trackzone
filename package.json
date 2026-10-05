@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "packageManager": "pnpm@11.24.0",
   "engines": {
-    "node": ">=20.11"
+    "node": ">=22.18"
   },
   "scripts": {
     "dev": "turbo run dev",
@@ -15,7 +15,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json,css}\"",
     "db:reset": "supabase db reset",
-    "db:diff": "supabase db diff -f"
+    "db:diff": "supabase db diff -f",
+    "storage:local": "node scripts/setup-local-storage.mjs",
+    "worker:local": "pnpm --filter @trackzone/worker dev"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

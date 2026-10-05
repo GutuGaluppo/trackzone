@@ -28,6 +28,7 @@ const serverSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().min(1, 'R2_SECRET_ACCESS_KEY is required'),
   R2_BUCKET: z.string().min(1, 'R2_BUCKET is required'),
   R2_ENDPOINT: z.string().url().optional(),
+  R2_REGION: z.string().min(1).default('auto'),
   /** Optional: without it, background processing enqueue is skipped, not fatal. */
   TRIGGER_SECRET_KEY: z.string().min(1).optional(),
 

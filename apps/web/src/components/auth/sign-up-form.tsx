@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signUpSchema, type SignUpInput } from '@trackzone/validation';
 import { createClient } from '@/lib/supabase/client';
+import { authErrorMessage } from '@/lib/auth/error-message';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
 
@@ -21,29 +22,29 @@ export function SignUpForm() {
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { error, data } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: values.displayName ? { data: { display_name: values.displayName } } : undefined,
-    });
+      const { error, data } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: values.displayName ? { data: { display_name: values.displayName } } : undefined,
+      });
 
-    if (error) {
-      setFormError(
-        error.message.toLowerCase().includes('already registered')
-          ? 'An account with that email already exists.'
-          : 'We could not create your account. Try again.',
-      );
-      return;
-    }
+      if (error) {
+        setFormError(authErrorMessage(error, 'sign-up'));
+        return;
+      }
 
-    // Email confirmation is on by default in Supabase; a session may not exist yet.
-    if (data.session) {
-      router.replace('/library');
-      router.refresh();
-    } else {
-      router.replace('/sign-in?confirmEmail=1');
+      // Email confirmation is on by default in Supabase; a session may not exist yet.
+      if (data.session) {
+        router.replace('/library');
+        router.refresh();
+      } else {
+        router.replace('/sign-in?confirmEmail=1');
+      }
+    } catch (error) {
+      setFormError(authErrorMessage(error, 'sign-up'));
     }
   });
 

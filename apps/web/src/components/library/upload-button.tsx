@@ -3,7 +3,11 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, Loader2, Upload, X } from 'lucide-react';
-import { ALLOWED_AUDIO_EXTENSIONS, MAX_UPLOAD_BYTES } from '@trackzone/validation';
+import {
+  ALLOWED_AUDIO_EXTENSIONS,
+  MAX_UPLOAD_BYTES,
+  resolveAudioMimeType,
+} from '@trackzone/validation';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -37,11 +41,17 @@ export function UploadButton() {
       if (file.size > MAX_UPLOAD_BYTES) {
         throw new Error('File exceeds the 2 GB upload limit.');
       }
+      if (file.size === 0) throw new Error('This file is empty. Choose a different audio file.');
+      const mimeType = resolveAudioMimeType(file.name, file.type);
+      if (!mimeType)
+        throw new Error(
+          'Unsupported audio format. Choose a WAV, AIFF, FLAC, MP3, M4A, AAC, OGG or OPUS file.',
+        );
 
       const createResponse = await fetch('/api/uploads', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ filename: file.name, mimeType: file.type, fileSize: file.size }),
+        body: JSON.stringify({ filename: file.name, mimeType, fileSize: file.size }),
       });
 
       if (!createResponse.ok) {
@@ -57,20 +67,32 @@ export function UploadButton() {
         upload: { url: string; headers: Record<string, string> };
       };
 
-      const putResponse = await fetch(upload.url, {
-        method: 'PUT',
-        headers: upload.headers,
-        body: file,
-      });
+      let putResponse: Response;
+      try {
+        putResponse = await fetch(upload.url, {
+          method: 'PUT',
+          headers: upload.headers,
+          body: file,
+        });
+      } catch {
+        throw new Error(
+          'Could not connect to audio storage. Your file was not imported. Please try again.',
+        );
+      }
 
-      if (!putResponse.ok) throw new Error('The upload was interrupted. Try again.');
+      if (!putResponse.ok)
+        throw new Error(
+          putResponse.status === 413
+            ? 'This file exceeds the storage upload limit.'
+            : 'Audio storage rejected the upload. Your file was not imported. Please try again.',
+        );
 
       update({ status: 'processing' });
 
       const completeResponse = await fetch('/api/uploads/complete', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ storageKey, filename, mimeType: file.type }),
+        body: JSON.stringify({ storageKey, filename, mimeType }),
       });
 
       if (!completeResponse.ok) {
@@ -114,9 +136,12 @@ export function UploadButton() {
       </Button>
 
       {items.length > 0 ? (
-        <ul className="border-line bg-surface-1 w-72 space-y-1 rounded-sm border p-2">
+        <ul
+          aria-live="polite"
+          className="border-line bg-surface-1 w-80 space-y-2 rounded-sm border p-2"
+        >
           {items.map((item) => (
-            <li key={item.id} className="text-2xs flex items-center gap-2">
+            <li key={item.id} className="text-2xs flex flex-wrap items-center gap-2">
               {item.status === 'uploading' || item.status === 'processing' ? (
                 <Loader2 className="text-fg-subtle h-3 w-3 shrink-0 animate-spin" aria-hidden />
               ) : item.status === 'done' ? (
@@ -132,9 +157,9 @@ export function UploadButton() {
                 )}
               >
                 {item.status === 'uploading' && 'Uploading…'}
-                {item.status === 'processing' && 'Processing…'}
-                {item.status === 'done' && 'Ready'}
-                {item.status === 'error' && (item.message ?? 'Failed')}
+                {item.status === 'processing' && 'Finishing…'}
+                {item.status === 'done' && 'Uploaded'}
+                {item.status === 'error' && 'Failed'}
               </span>
               {item.status === 'done' || item.status === 'error' ? (
                 <button
@@ -145,6 +170,11 @@ export function UploadButton() {
                 >
                   <X className="h-3 w-3" aria-hidden />
                 </button>
+              ) : null}
+              {item.status === 'error' ? (
+                <p role="alert" className="text-danger w-full break-words pl-5">
+                  {item.message ?? 'Upload failed.'}
+                </p>
               ) : null}
             </li>
           ))}

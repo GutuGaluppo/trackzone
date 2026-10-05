@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { ProcessingBadge } from '@/components/library/status-badge';
 import { SourceRail } from '@/components/library/source-rail';
 import { TrackActionsMenu, type CollectionOption } from '@/components/library/track-actions-menu';
+import { useProcessingRefresh } from '@/hooks/use-processing-refresh';
 
 export function LibraryTable({
   tracks,
@@ -16,6 +17,7 @@ export function LibraryTable({
   tracks: LibraryTrack[];
   collections?: CollectionOption[];
 }) {
+  useProcessingRefresh(tracks);
   const currentTrackId = usePlayerStore((s) => s.currentTrack()?.id ?? null);
   const playing = usePlayerStore((s) => s.playing);
   const playTrack = usePlayerStore((s) => s.playTrack);
@@ -95,7 +97,8 @@ export function LibraryTable({
                 <ProcessingBadge status={track.processing_status ?? 'ready'} />
               </td>
               <td className="text-fg-muted max-w-40 truncate py-2 pr-3">
-                {track.artist_name ?? '—'}
+                {track.artist_name ??
+                  (track.processing_status === 'ready' ? 'Unknown artist' : '—')}
               </td>
               <td className="text-fg-muted tabular py-2 pr-3 text-right">
                 {formatDuration(track.duration_ms)}
@@ -110,6 +113,8 @@ export function LibraryTable({
                 <TrackActionsMenu
                   trackId={track.id}
                   trackTitle={track.title}
+                  artistName={track.artist_name}
+                  albumName={track.album_name}
                   visibility={track.visibility}
                   favorite={track.favorite}
                   collections={collections}

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { mimeMatchesExtension, sanitizeFilename, titleFromFilename } from './audio.ts';
+import {
+  mimeMatchesExtension,
+  resolveAudioMimeType,
+  sanitizeFilename,
+  titleFromFilename,
+} from './audio.ts';
 import { createUploadSchema } from './upload.ts';
 
 describe('sanitizeFilename', () => {
@@ -58,5 +63,28 @@ describe('createUploadSchema', () => {
   it('rejects a mismatch between MIME type and extension', () => {
     const spoofed = { ...valid, filename: 'night-drive.mp3' };
     expect(createUploadSchema.safeParse(spoofed).success).toBe(false);
+  });
+});
+
+describe('resolveAudioMimeType', () => {
+  it.each(['', 'application/octet-stream', 'binary/octet-stream'])(
+    'accepts a WAV with an unspecified browser type (%s)',
+    (type) => {
+      expect(resolveAudioMimeType('MASTER.WAV', type)).toBe('audio/wav');
+    },
+  );
+  it.each(['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave'])(
+    'accepts WAV type %s through server validation',
+    (type) => {
+      const mimeType = resolveAudioMimeType('master.wav', type);
+      expect(
+        createUploadSchema.safeParse({ filename: 'master.wav', mimeType, fileSize: 1024 }).success,
+      ).toBe(true);
+    },
+  );
+  it('rejects a declared type mismatch and unsupported extensions', () => {
+    expect(resolveAudioMimeType('master.wav', 'audio/mpeg')).toBeNull();
+    expect(resolveAudioMimeType('payload.exe', '')).toBeNull();
+    expect(resolveAudioMimeType('master.wav', 'text/plain')).toBeNull();
   });
 });

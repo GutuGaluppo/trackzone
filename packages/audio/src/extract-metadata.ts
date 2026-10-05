@@ -1,4 +1,4 @@
-import { parseBuffer } from 'music-metadata';
+import { parseBuffer, parseWebStream, type IAudioMetadata } from 'music-metadata';
 
 /**
  * Basic metadata pipeline (docs §9): duration, codec, sample rate, bit depth,
@@ -15,6 +15,8 @@ export interface ExtractedAudioMetadata {
   bitDepth: number | null;
   bitrate: number | null;
   channels: number | null;
+  artistName: string | null;
+  albumName: string | null;
 }
 
 export class UnsupportedAudioError extends Error {
@@ -28,14 +30,37 @@ export async function extractAudioMetadata(
   bytes: Uint8Array,
   mimeType: string,
 ): Promise<ExtractedAudioMetadata> {
-  let format: Awaited<ReturnType<typeof parseBuffer>>['format'];
-
   try {
-    ({ format } = await parseBuffer(bytes, mimeType, { duration: true, skipCovers: true }));
+    return normalizeMetadata(
+      await parseBuffer(bytes, mimeType, { duration: true, skipCovers: true }),
+    );
   } catch (error) {
+    if (error instanceof UnsupportedAudioError) throw error;
     throw new UnsupportedAudioError(error);
   }
+}
 
+/** Parse large originals without buffering the entire file in worker memory. */
+export async function extractAudioMetadataFromStream(
+  stream: ReadableStream<Uint8Array>,
+  mimeType: string,
+  fileSize?: number,
+): Promise<ExtractedAudioMetadata> {
+  try {
+    return normalizeMetadata(
+      await parseWebStream(
+        stream,
+        { mimeType, size: fileSize },
+        { duration: true, skipCovers: true },
+      ),
+    );
+  } catch (error) {
+    if (error instanceof UnsupportedAudioError) throw error;
+    throw new UnsupportedAudioError(error);
+  }
+}
+
+function normalizeMetadata({ format, common }: IAudioMetadata): ExtractedAudioMetadata {
   if (!format.hasAudio) {
     throw new UnsupportedAudioError(new Error('No audio stream was found in the file.'));
   }
@@ -47,5 +72,7 @@ export async function extractAudioMetadata(
     bitDepth: format.bitsPerSample ?? null,
     bitrate: format.bitrate != null ? Math.round(format.bitrate) : null,
     channels: format.numberOfChannels ?? null,
+    artistName: common.artist?.trim() || null,
+    albumName: common.album?.trim() || null,
   };
 }

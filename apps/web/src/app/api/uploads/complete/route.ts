@@ -1,5 +1,10 @@
 import type { NextRequest } from 'next/server';
-import { completeUploadSchema, titleFromFilename, sanitizeFilename } from '@trackzone/validation';
+import {
+  completeUploadSchema,
+  titleFromFilename,
+  sanitizeFilename,
+  MAX_UPLOAD_BYTES,
+} from '@trackzone/validation';
 import { keyBelongsToUser } from '@trackzone/storage';
 import { z } from 'zod';
 import { getOptionalUser } from '@/lib/auth/require-user';
@@ -40,6 +45,9 @@ export const POST = route(async (request: NextRequest) => {
   }
   if (object.size <= 0) {
     return fail(409, 'upload_empty', 'The uploaded file is empty.');
+  }
+  if (object.size > MAX_UPLOAD_BYTES) {
+    return fail(413, 'upload_too_large', 'The file exceeds the 2 GB upload limit.');
   }
 
   const filename = sanitizeFilename(body.filename);
