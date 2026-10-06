@@ -10,7 +10,7 @@ import tseslint from 'typescript-eslint';
  * doesn't false-positive on the server modules that are supposed to use it.
  */
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/coverage/**'] },
+  { ignores: ['**/dist/**', '**/.next/**', '**/.trigger/**', '**/node_modules/**', '**/coverage/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
