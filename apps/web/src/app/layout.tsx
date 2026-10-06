@@ -1,17 +1,26 @@
 import type { Metadata } from 'next';
-import { Instrument_Sans, DM_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import { QueryProvider } from '@/providers/query-provider';
 import './globals.css';
 
-const instrumentSans = Instrument_Sans({
-  subsets: ['latin'],
+const instrumentSans = localFont({
+  src: '../../node_modules/@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2',
+  weight: '400 700',
   variable: '--font-instrument-sans',
   display: 'swap',
 });
 
-const dmMono = DM_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
+const dmMono = localFont({
+  src: [
+    {
+      path: '../../node_modules/@fontsource/dm-mono/files/dm-mono-latin-400-normal.woff2',
+      weight: '400',
+    },
+    {
+      path: '../../node_modules/@fontsource/dm-mono/files/dm-mono-latin-500-normal.woff2',
+      weight: '500',
+    },
+  ],
   variable: '--font-dm-mono',
   display: 'swap',
 });
