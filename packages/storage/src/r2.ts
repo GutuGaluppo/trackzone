@@ -130,6 +130,16 @@ export function createR2Storage(config: R2Config): ObjectStorage {
       }
     },
 
+    async put(key: string, body: BodyInit, contentType: string): Promise<void> {
+      if (parseStorageKey(key)?.kind !== 'originals') throw new InvalidStorageKeyError();
+      const response = await client.fetch(objectUrl(key), {
+        method: 'PUT',
+        headers: { 'content-type': contentType },
+        body,
+      });
+      if (!response.ok) throw new Error(`R2 provider ingest failed (status ${response.status}).`);
+    },
+
     async copy(source, destination, sourceEtag): Promise<void> {
       assertStorageKey(source);
       assertStorageKey(destination);

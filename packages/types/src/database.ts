@@ -441,6 +441,17 @@ export interface Database {
         Args: { p_audio_file_id: string; p_token: string; p_metadata: Json };
         Returns: boolean;
       };
+      complete_google_drive_import_item: {
+        Args: {
+          p_import_item_id: string;
+          p_storage_key: string;
+          p_filename: string;
+          p_mime_type: string;
+          p_file_size: number;
+          p_source_metadata: Json;
+        };
+        Returns: { track_id: string; audio_file_id: string }[];
+      };
       claim_upload: {
         Args: { p_upload_id: string; p_owner_id: string };
         Returns: UploadSessionRow[];

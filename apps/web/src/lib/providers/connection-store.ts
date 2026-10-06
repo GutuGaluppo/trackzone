@@ -3,6 +3,7 @@ import 'server-only';
 import { createAdminSupabase } from '@/lib/supabase/admin';
 import { encryptJson } from './crypto';
 import type { SoundCloudTokens } from './soundcloud';
+import type { GoogleDriveTokens } from './google-drive';
 
 /**
  * Writes to `public.provider_connections` + `private.provider_credentials`.
@@ -60,6 +61,51 @@ export async function upsertSoundCloudConnection({
     });
   if (credentialsError) {
     // Don't leave a connection row with no usable credentials behind.
+    await admin.from('provider_connections').delete().eq('id', connection.id);
+    throw credentialsError;
+  }
+}
+
+export async function upsertGoogleDriveConnection({
+  userId,
+  accountId,
+  email,
+  tokens,
+}: {
+  userId: string;
+  accountId: string;
+  email: string | null;
+  tokens: GoogleDriveTokens;
+}): Promise<void> {
+  const admin = createAdminSupabase();
+  const { error: clearError } = await admin
+    .from('provider_connections')
+    .delete()
+    .eq('user_id', userId)
+    .eq('provider', 'google_drive');
+  if (clearError) throw clearError;
+  const { data: connection, error: connectionError } = await admin
+    .from('provider_connections')
+    .insert({
+      user_id: userId,
+      provider: 'google_drive',
+      provider_account_id: accountId,
+      display_name: email,
+      status: 'active',
+      last_synced_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
+  if (connectionError) throw connectionError;
+  const { error: credentialsError } = await admin
+    .schema('private')
+    .from('provider_credentials')
+    .insert({
+      connection_id: connection.id,
+      encrypted_credentials: encryptJson(tokens),
+      expires_at: tokens.expiresAt,
+    });
+  if (credentialsError) {
     await admin.from('provider_connections').delete().eq('id', connection.id);
     throw credentialsError;
   }

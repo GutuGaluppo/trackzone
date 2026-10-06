@@ -34,6 +34,7 @@ function setup(overrides: Partial<UploadSessionRow> = {}) {
     storage: {
       head: vi.fn().mockResolvedValue({ size: 44, contentType: 'audio/wav', etag: '"v1"' }),
       copy: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined),
       delete: vi.fn(),
       createUploadUrl: vi.fn(),
       createDownloadUrl: vi.fn(),

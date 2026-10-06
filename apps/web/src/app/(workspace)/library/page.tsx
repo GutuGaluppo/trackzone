@@ -5,6 +5,7 @@ import { LibraryTable } from '@/components/library/library-table';
 import { LibrarySearch } from '@/components/library/search-box';
 import { UploadButton } from '@/components/library/upload-button';
 import { EmptyState } from '@/components/library/empty-state';
+import { GoogleDriveImportButton } from '@/components/library/google-drive-import-button';
 
 export const metadata: Metadata = { title: 'Library' };
 
@@ -29,12 +30,24 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
   const search = q?.trim() || undefined;
 
   const { user, supabase } = await requireUser('/library');
-  const [tracks, { data: collections, error: collectionsError }] = await Promise.all([
+  const [
+    tracks,
+    { data: collections, error: collectionsError },
+    { data: googleDriveConnection, error: connectionError },
+  ] = await Promise.all([
     queryLibrary(supabase, { ownerId: user.id, scope, search }),
     supabase.from('collections').select('id, name').eq('owner_id', user.id).order('name'),
+    supabase
+      .from('provider_connections')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('provider', 'google_drive')
+      .eq('status', 'active')
+      .maybeSingle(),
   ]);
 
   if (collectionsError) throw collectionsError;
+  if (connectionError) throw connectionError;
 
   return (
     <div className="flex h-full flex-col">
@@ -45,6 +58,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
         </div>
         <div className="flex items-center gap-3">
           <LibrarySearch initialValue={search ?? ''} />
+          <GoogleDriveImportButton connected={googleDriveConnection !== null} />
           <UploadButton />
         </div>
       </div>

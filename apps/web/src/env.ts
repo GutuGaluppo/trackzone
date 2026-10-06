@@ -41,6 +41,8 @@ const serverSchema = z.object({
    */
   SOUNDCLOUD_CLIENT_ID: optionalSecret,
   SOUNDCLOUD_CLIENT_SECRET: optionalSecret,
+  GOOGLE_DRIVE_CLIENT_ID: optionalSecret,
+  GOOGLE_DRIVE_CLIENT_SECRET: optionalSecret,
   PROVIDER_CREDENTIALS_KEY: optionalSecret,
 });
 

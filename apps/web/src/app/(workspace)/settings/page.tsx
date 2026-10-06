@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { requireUser } from '@/lib/auth/require-user';
 import { soundcloudConfig } from '@/lib/providers/soundcloud';
+import { googleDriveConfig } from '@/lib/providers/google-drive';
 import { ProfileForm } from '@/components/settings/profile-form';
 import { ConnectionsPanel, type ConnectionNotice } from '@/components/settings/connections-panel';
 
@@ -14,15 +15,16 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const { connected, error } = await searchParams;
   const { user, supabase } = await requireUser('/settings');
 
-  const [{ data: profile, error: profileError }, { data: connection, error: connectionError }] =
+  const [{ data: profile, error: profileError }, { data: connections, error: connectionError }] =
     await Promise.all([
       supabase.from('profiles').select('username, display_name').eq('id', user.id).single(),
       supabase
         .from('provider_connections')
-        .select('id, provider_account_id, display_name, status, created_at, last_synced_at')
+        .select(
+          'id, provider, provider_account_id, display_name, status, created_at, last_synced_at',
+        )
         .eq('user_id', user.id)
-        .eq('provider', 'soundcloud')
-        .maybeSingle(),
+        .in('provider', ['soundcloud', 'google_drive']),
     ]);
 
   if (profileError) throw profileError;
@@ -46,7 +48,13 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
 
         <ConnectionsPanel
           soundcloudConfigured={soundcloudConfig() !== null}
-          connection={connection ?? null}
+          soundcloudConnection={
+            connections?.find((connection) => connection.provider === 'soundcloud') ?? null
+          }
+          googleDriveConfigured={googleDriveConfig() !== null}
+          googleDriveConnection={
+            connections?.find((connection) => connection.provider === 'google_drive') ?? null
+          }
           notice={notice}
         />
       </div>

@@ -39,6 +39,8 @@ export interface ObjectStorage {
   head(key: string): Promise<StoredObject | null>;
   /** Server-side copy of the exact source version verified by HEAD. */
   copy(source: string, destination: string, sourceEtag: string): Promise<void>;
+  /** Server-only ingest for trusted provider workers. Browser uploads use signed PUTs instead. */
+  put(key: string, body: BodyInit, contentType: string): Promise<void>;
   delete(key: string): Promise<void>;
 }
 
