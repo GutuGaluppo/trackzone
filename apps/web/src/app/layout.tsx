@@ -33,7 +33,18 @@ export const metadata: Metadata = {
   description:
     'TrackZone brings every track, sample and idea from every platform into one place. Organize. Listen. Move. Backup. Yours.',
   icons: {
-    icon: '/brand/favicon.png',
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: '16x16 32x32 48x48 64x64 128x128 256x256',
+        type: 'image/x-icon',
+      },
+      {
+        url: '/brand/favicon-tab.png',
+        sizes: '256x256',
+        type: 'image/png',
+      },
+    ],
     apple: '/brand/favicon.png',
   },
 };
