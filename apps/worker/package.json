@@ -4,11 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./trigger/process-audio-file": "./src/trigger/process-audio-file.ts",
-    "./local-environment": "./src/local-environment.ts"
+    "./trigger/process-audio-file": "./src/trigger/process-audio-file.ts"
   },
   "scripts": {
-    "dev": "node --experimental-strip-types --env-file=../web/.env.local src/local-worker.ts",
+    "dev": "node --experimental-strip-types --env-file=../web/.env.local src/dev-worker.ts",
     "dev:trigger": "trigger dev",
     "deploy": "trigger deploy",
     "lint": "eslint .",
@@ -20,13 +19,14 @@
     "@trackzone/database": "workspace:*",
     "@trackzone/storage": "workspace:*",
     "@trackzone/types": "workspace:*",
-    "@trigger.dev/sdk": "^4.5.15",
+    "@trigger.dev/sdk": "4.7.2",
     "zod": "^4.5.4"
   },
   "devDependencies": {
     "@trackzone/config": "workspace:*",
-    "@trigger.dev/build": "^4.5.15",
+    "@trigger.dev/build": "4.7.2",
     "eslint": "^9.39.0",
+    "trigger.dev": "4.5.15",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }

@@ -37,6 +37,8 @@ export interface ObjectStorage {
   createUploadUrl(options: CreateUploadUrlOptions): Promise<SignedUploadTarget>;
   createDownloadUrl(options: CreateDownloadUrlOptions): Promise<string>;
   head(key: string): Promise<StoredObject | null>;
+  /** Server-side copy of the exact source version verified by HEAD. */
+  copy(source: string, destination: string, sourceEtag: string): Promise<void>;
   delete(key: string): Promise<void>;
 }
 

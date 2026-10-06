@@ -60,6 +60,10 @@ type AudioFileRow = {
   is_original: boolean;
   processing_status: ProcessingStatus;
   processing_error: string | null;
+  processing_attempts: number;
+  processing_token: string | null;
+  processing_lease_expires_at: string | null;
+  processing_retryable: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -72,6 +76,27 @@ type TrackSourceRow = {
   audio_file_id: string | null;
   source_metadata: Json;
   status: SourceStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UploadSessionRow = {
+  id: string;
+  owner_id: string;
+  storage_key: string;
+  filename: string;
+  mime_type: string;
+  file_size: number;
+  title: string;
+  status: 'issued' | 'finalizing' | 'completed' | 'expired';
+  expires_at: string;
+  claim_token: string | null;
+  claim_expires_at: string | null;
+  final_key: string | null;
+  candidate_keys: string[];
+  track_id: string | null;
+  audio_file_id: string | null;
+  cleaned_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -210,6 +235,18 @@ type Table<
 export interface Database {
   public: {
     Tables: {
+      upload_sessions: Table<
+        UploadSessionRow,
+        | 'status'
+        | 'expires_at'
+        | 'claim_token'
+        | 'claim_expires_at'
+        | 'final_key'
+        | 'candidate_keys'
+        | 'track_id'
+        | 'audio_file_id'
+        | 'cleaned_at'
+      >;
       profiles: Table<ProfileRow, 'display_name' | 'avatar_url'>;
       tracks: Table<
         TrackRow,
@@ -244,7 +281,11 @@ export interface Database {
         | 'channels'
         | 'is_original'
         | 'processing_status'
-        | 'processing_error',
+        | 'processing_error'
+        | 'processing_attempts'
+        | 'processing_token'
+        | 'processing_lease_expires_at'
+        | 'processing_retryable',
         [
           {
             foreignKeyName: 'audio_files_track_id_fkey';
@@ -391,6 +432,23 @@ export interface Database {
       library_tracks: { Row: LibraryTrackRow; Relationships: [] };
     };
     Functions: {
+      claim_audio_processing: { Args: { p_audio_file_id: string }; Returns: AudioFileRow[] };
+      retry_audio_processing: {
+        Args: { p_audio_file_id: string; p_owner_id: string };
+        Returns: AudioFileRow[];
+      };
+      finish_audio_processing: {
+        Args: { p_audio_file_id: string; p_token: string; p_metadata: Json };
+        Returns: boolean;
+      };
+      claim_upload: {
+        Args: { p_upload_id: string; p_owner_id: string };
+        Returns: UploadSessionRow[];
+      };
+      complete_upload: {
+        Args: { p_upload_id: string; p_owner_id: string; p_claim_token: string };
+        Returns: { track_id: string; audio_file_id: string }[];
+      };
       track_is_readable_by: { Args: { p_track_id: string; p_user_id: string }; Returns: boolean };
       track_is_owned_by: { Args: { p_track_id: string; p_user_id: string }; Returns: boolean };
     };

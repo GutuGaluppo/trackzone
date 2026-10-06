@@ -35,57 +35,44 @@ Track, AudioFile and TrackSource are deliberately separate concepts — see
 
 ## Setup
 
-Requires Node 22.18+, pnpm, Docker (for local Supabase), and accounts for
-Supabase, Cloudflare R2, and (optional) Trigger.dev.
+Requires Node 22.18+, pnpm, a Supabase project (Postgres + Auth), and a private
+Cloudflare R2 bucket. Trigger.dev is required for hosted processing in production.
+Docker and local Supabase are optional tools for database integration tests.
 
 ```bash
 pnpm install
-
-# Local Supabase (Postgres + Auth + PostgREST), applies supabase/migrations
-supabase start
-
 cp apps/web/.env.example apps/web/.env.local
-# Fill in the values `supabase status` prints, plus your R2 credentials
+# Fill in Supabase URL/keys and Cloudflare R2 credentials.
 ```
 
-Point `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
-`SUPABASE_SERVICE_ROLE_KEY` at either the local instance (`supabase status`)
-or a real Supabase project — migrations apply the same way either way via
-`supabase db push` against a linked project.
+Supabase stores accounts, permissions and track metadata. R2 stores audio bytes;
+configuring R2 does not replace the Supabase database or authentication service.
+Point the Supabase variables at your hosted project to run without local Supabase.
+Apply migrations through `supabase db push` against the linked project after
+reviewing the target and pending changes. Existing local database data and local
+files are not automatically copied to the hosted services.
 
-R2: create a private bucket and an API token with read/write access; there is
-no public bucket policy to configure — every URL the app hands out is signed
-and short-lived.
-
-For local development without Cloudflare credentials, use the S3-compatible
-storage already provided by the local Supabase stack:
+Keep the R2 bucket private and configure browser CORS for the application's
+origins. Every media URL issued by the application is signed and short-lived.
+For setup details, see [R2 configuration (Português)](docs/R2_CONFIGURATION.md).
 
 ```bash
-pnpm storage:local
+pnpm dev                        # starts web and development worker together
+pnpm --filter @trackzone/web dev # web only, on :3000
+pnpm worker:dev                 # worker only, using apps/web/.env.local
+pnpm storage:check              # verify R2 and CORS; remove temporary probe objects
 ```
 
-This creates or configures a private `trackzone-audio` bucket and writes local
-S3 credentials, endpoint, and region into `apps/web/.env.local`. It only runs
-when the app points to local Supabase. Restart the web app after running it.
-Files remain in the local Supabase Docker volume; this does not configure
-Cloudflare R2 or copy files to a hosted project. If Supabase was already running
-with the previous 50 MiB storage limit, restart it with `supabase stop` and
-`supabase start` to apply the 2 GiB limit. Keep the Docker volumes to retain data.
+The development worker reads audio from R2 and uses whichever Supabase database
+is configured. It polls pending jobs, acquires database leases to avoid concurrent
+processing, and recovers interrupted jobs. It refuses `NODE_ENV=production`.
+It uses the same extraction adapter as Trigger.dev. Duration, technical metadata
+and embedded artist/album tags are extracted; missing tags stay empty. The Library
+refreshes while work is outstanding. Originals remain untouched.
 
-```bash
-pnpm --filter @trackzone/web dev   # apps/web on :3000
-pnpm worker:local                # separate process: metadata extraction for local uploads
-# Or start both together:
-pnpm dev
-```
-
-The local worker polls the local database for queued uploads, including those
-created before it was started. It extracts duration, technical metadata, and
-embedded artist/album tags, and the Library refreshes while processing is active.
-It requires local Supabase and local storage and refuses production environments.
-Files without artist/album tags keep those fields empty; the UI shows "Unknown
-artist" after processing. Originals remain untouched. Interrupted local jobs
-can be reclaimed after a ten-minute lease expires.
+Without `TRIGGER_SECRET_KEY` in development, uploads are left for this worker.
+In production, dispatch requires Trigger.dev and missing configuration produces a
+visible processing failure. Do not use `worker:dev` as a production service.
 
 Hosted processing uses Trigger.dev. Configure a real project in
 `apps/worker/trigger.config.ts`, set `TRIGGER_SECRET_KEY` in the web app, and use

@@ -79,7 +79,7 @@ export function SharedTrackList({
       <tbody>
         {tracks.map((track) => {
           const isCurrent = track.id === currentTrackId;
-          const isPlayable = track.processing_status !== 'failed';
+          const isPlayable = track.processing_status === 'ready';
 
           return (
             <tr

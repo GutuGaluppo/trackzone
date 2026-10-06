@@ -52,10 +52,8 @@ export function LibraryTable({
       <tbody>
         {tracks.map((track) => {
           const isCurrent = track.id === currentTrackId;
-          // Mirrors the server: the file is playable the moment it's uploaded.
-          // Processing only enriches metadata — it never gates playback,
-          // except when it has definitively failed.
-          const isPlayable = track.processing_status !== 'failed';
+          // Bytes are available only after server-side content validation.
+          const isPlayable = track.processing_status === 'ready';
 
           return (
             <tr

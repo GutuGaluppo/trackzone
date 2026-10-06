@@ -45,6 +45,9 @@ export const GET = route(async (_request: Request, { params }: Context) => {
   if (track.audioFile.processingStatus === 'failed') {
     return fail(409, 'processing_failed', 'This track could not be processed.');
   }
+  if (track.audioFile.processingStatus !== 'ready') {
+    return fail(409, 'processing_pending', 'This track is still being validated.');
+  }
 
   const url = await storage().createDownloadUrl({
     key: track.audioFile.storageKey,

@@ -25,11 +25,13 @@ describe('S3-compatible storage signing', () => {
       region: 'local',
     });
     const upload = await storage.createUploadUrl({
-      key: 'originals/user/upload.wav',
+      key: 'uploads/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.wav',
       contentType: 'audio/wav',
     });
     const url = new URL(upload.url);
-    expect(url.pathname).toBe('/storage/v1/s3/trackzone-audio/originals/user/upload.wav');
+    expect(url.pathname).toBe(
+      '/storage/v1/s3/trackzone-audio/uploads/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.wav',
+    );
     expect(url.searchParams.get('X-Amz-Credential')).toContain('/local/s3/aws4_request');
     expect(url.searchParams.get('X-Amz-SignedHeaders')).toContain('content-type');
     expect(upload.headers).toEqual({ 'content-type': 'audio/wav' });
@@ -39,7 +41,10 @@ describe('S3-compatible storage signing', () => {
   it('keeps the default R2 endpoint, region and expiring playback links', async () => {
     const storage = createR2Storage(config);
     const url = new URL(
-      await storage.createDownloadUrl({ key: 'originals/user/upload.wav', expiresInSeconds: 300 }),
+      await storage.createDownloadUrl({
+        key: 'originals/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222.wav',
+        expiresInSeconds: 300,
+      }),
     );
     expect(url.hostname).toBe('test-account.r2.cloudflarestorage.com');
     expect(url.searchParams.get('X-Amz-Credential')).toContain('/auto/s3/aws4_request');

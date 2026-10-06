@@ -61,9 +61,8 @@ export function UploadButton() {
         throw new Error(body?.error?.message ?? 'Could not start the upload.');
       }
 
-      const { storageKey, filename, upload } = (await createResponse.json()) as {
-        storageKey: string;
-        filename: string;
+      const { uploadId, upload } = (await createResponse.json()) as {
+        uploadId: string;
         upload: { url: string; headers: Record<string, string> };
       };
 
@@ -92,7 +91,7 @@ export function UploadButton() {
       const completeResponse = await fetch('/api/uploads/complete', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ storageKey, filename, mimeType }),
+        body: JSON.stringify({ uploadId }),
       });
 
       if (!completeResponse.ok) {

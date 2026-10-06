@@ -11,6 +11,7 @@ import {
   type TrackAuthorizationInput,
 } from '@trackzone/database';
 import { createAdminSupabase } from '@/lib/supabase/admin';
+import { isMediaKeyForUser } from '@trackzone/storage';
 
 export interface AuthorizedTrack {
   id: string;
@@ -103,6 +104,10 @@ export async function authorizeTrack(
 
   const original =
     track.audio_files?.find((file) => file.is_original) ?? track.audio_files?.[0] ?? null;
+
+  if (original && !isMediaKeyForUser(original.storage_key, track.owner_id)) {
+    throw new AuthorizationError('private_track');
+  }
 
   return {
     id: track.id,

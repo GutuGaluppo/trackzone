@@ -1,5 +1,6 @@
 export type {
   Database,
+  UploadSessionRow,
   Json,
   LibraryTrackRow,
   Tables,

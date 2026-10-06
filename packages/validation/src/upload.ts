@@ -49,13 +49,11 @@ export const createUploadSchema = z
  * Sent after the browser has finished its direct PUT to R2. The server
  * re-verifies the object against storage before creating any record.
  */
-export const completeUploadSchema = z.object({
-  storageKey: z.string().min(1).max(512),
-  checksum: z
-    .string()
-    .regex(/^[a-f0-9]{64}$/, 'Expected a lowercase SHA-256 hex digest')
-    .optional(),
-});
+export const completeUploadSchema = z
+  .object({
+    uploadId: z.string().uuid(),
+  })
+  .strict();
 
 export type CreateUploadInput = z.infer<typeof createUploadSchema>;
 export type CompleteUploadInput = z.infer<typeof completeUploadSchema>;

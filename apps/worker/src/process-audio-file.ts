@@ -1,4 +1,9 @@
-import { toFailedPatch, toReadyPatch, type ExtractedAudioMetadata } from '@trackzone/audio';
+import {
+  toFailedPatch,
+  toReadyPatch,
+  UnsupportedAudioError,
+  type ExtractedAudioMetadata,
+} from '@trackzone/audio';
 
 /**
  * The processing pipeline (docs §9), with I/O injected so it's testable
@@ -23,7 +28,11 @@ export interface ProcessAudioFileDeps {
     audioFileId: string,
     trackId: string,
   ) => Promise<void>;
-  applyFailedPatch: (patch: ReturnType<typeof toFailedPatch>, audioFileId: string) => Promise<void>;
+  applyFailedPatch: (
+    patch: ReturnType<typeof toFailedPatch>,
+    audioFileId: string,
+    retryable: boolean,
+  ) => Promise<void>;
 }
 
 export async function processAudioFile(
@@ -42,6 +51,14 @@ export async function processAudioFile(
     const metadata = await deps.loadMetadata(record);
     await deps.applyReadyPatch(toReadyPatch(metadata), audioFileId, record.track_id);
   } catch (error) {
-    await deps.applyFailedPatch(toFailedPatch(error), audioFileId);
+    const retryable = !(error instanceof UnsupportedAudioError);
+    await deps.applyFailedPatch(
+      toFailedPatch(
+        retryable ? new Error('Audio processing is temporarily unavailable. Try again.') : error,
+      ),
+      audioFileId,
+      retryable,
+    );
+    if (retryable) throw error;
   }
 }

@@ -38,6 +38,9 @@ export const GET = route(async (_request: Request, { params }: Context) => {
   if (!track.audioFile) {
     return fail(409, 'no_audio_file', 'This track has no file to download.');
   }
+  if (track.audioFile.processingStatus !== 'ready') {
+    return fail(409, 'processing_pending', 'This track is not ready to download.');
+  }
 
   const url = await storage().createDownloadUrl({
     key: track.audioFile.storageKey,

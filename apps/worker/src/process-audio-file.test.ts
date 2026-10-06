@@ -83,7 +83,7 @@ describe('processAudioFile', () => {
     expect(patch.track.duration_ms).toBe(1000);
   });
 
-  it('applies the failed patch when the download fails, without throwing', async () => {
+  it('marks transient failures and throws so Trigger.dev can retry', async () => {
     const deps = {
       loadAudioFile: vi.fn().mockResolvedValue(RECORD),
       markProcessing: vi.fn().mockResolvedValue(undefined),
@@ -92,14 +92,15 @@ describe('processAudioFile', () => {
       applyFailedPatch: vi.fn().mockResolvedValue(undefined),
     };
 
-    await expect(processAudioFile('audio-1', deps)).resolves.toBeUndefined();
+    await expect(processAudioFile('audio-1', deps)).rejects.toThrow('object not found');
 
     expect(deps.applyReadyPatch).not.toHaveBeenCalled();
     expect(deps.applyFailedPatch).toHaveBeenCalledTimes(1);
     const [patch, audioFileId] = deps.applyFailedPatch.mock.calls[0]!;
     expect(audioFileId).toBe('audio-1');
     expect(patch.audioFile.processing_status).toBe('failed');
-    expect(patch.audioFile.processing_error).toContain('object not found');
+    expect(patch.audioFile.processing_error).toContain('temporarily unavailable');
+    expect(deps.applyFailedPatch.mock.calls[0]![2]).toBe(true);
   });
 
   it('applies the failed patch when the bytes are not valid audio', async () => {
@@ -118,5 +119,6 @@ describe('processAudioFile', () => {
     expect(deps.applyFailedPatch).toHaveBeenCalledTimes(1);
     const [patch] = deps.applyFailedPatch.mock.calls[0]!;
     expect(patch.audioFile.processing_status).toBe('failed');
+    expect(deps.applyFailedPatch.mock.calls[0]![2]).toBe(false);
   });
 });

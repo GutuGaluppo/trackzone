@@ -1,22 +1,16 @@
 import 'server-only';
 
-import { tasks } from '@trigger.dev/sdk/v3';
+import { tasks } from '@trigger.dev/sdk';
 import type { processAudioFileTask } from '@trackzone/worker/trigger/process-audio-file';
-import { isLocalUrl } from '@trackzone/worker/local-environment';
-import { clientEnv } from '@/env';
 import { createAdminSupabase } from '@/lib/supabase/admin';
 
 /**
- * In local development the separate local worker claims pending database rows.
+ * In local development the separate development worker claims pending database rows.
  * Hosted environments use Trigger.dev; dispatch errors become a visible failed
  * status instead of leaving an item queued forever.
  */
 export async function enqueueAudioProcessing(audioFileId: string): Promise<void> {
-  if (
-    !process.env.TRIGGER_SECRET_KEY &&
-    process.env.NODE_ENV !== 'production' &&
-    isLocalUrl(clientEnv.NEXT_PUBLIC_SUPABASE_URL)
-  ) {
+  if (!process.env.TRIGGER_SECRET_KEY && process.env.NODE_ENV !== 'production') {
     return;
   }
   try {
@@ -34,7 +28,8 @@ export async function enqueueAudioProcessing(audioFileId: string): Promise<void>
         processing_status: 'failed',
         processing_error: 'Audio processing is temporarily unavailable. Please try again later.',
       })
-      .eq('id', audioFileId);
+      .eq('id', audioFileId)
+      .eq('processing_status', 'pending');
     if (updateError) throw updateError;
   }
 }

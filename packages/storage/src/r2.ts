@@ -1,4 +1,5 @@
 import { AwsClient } from 'aws4fetch';
+import { assertStorageKey, parseStorageKey, InvalidStorageKeyError } from './keys.ts';
 import {
   DEFAULT_PLAYBACK_URL_TTL_SECONDS,
   DEFAULT_UPLOAD_URL_TTL_SECONDS,
@@ -52,8 +53,10 @@ export function createR2Storage(config: R2Config): ObjectStorage {
     region: config.region ?? 'auto',
   });
 
-  const objectUrl = (key: string) =>
-    `${endpoint}/${config.bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  const objectUrl = (key: string) => {
+    assertStorageKey(key);
+    return `${endpoint}/${encodeURIComponent(config.bucket)}/${key}`;
+  };
 
   return {
     async createUploadUrl({
@@ -61,6 +64,7 @@ export function createR2Storage(config: R2Config): ObjectStorage {
       contentType,
       expiresInSeconds = DEFAULT_UPLOAD_URL_TTL_SECONDS,
     }: CreateUploadUrlOptions): Promise<SignedUploadTarget> {
+      if (parseStorageKey(key)?.kind !== 'uploads') throw new InvalidStorageKeyError();
       const url = new URL(objectUrl(key));
       url.searchParams.set('X-Amz-Expires', String(expiresInSeconds));
 
@@ -123,6 +127,35 @@ export function createR2Storage(config: R2Config): ObjectStorage {
 
       if (!response.ok && response.status !== 404) {
         throw new Error(`R2 DELETE failed for object (status ${response.status})`);
+      }
+    },
+
+    async copy(source, destination, sourceEtag): Promise<void> {
+      assertStorageKey(source);
+      assertStorageKey(destination);
+      if (
+        parseStorageKey(source)?.kind !== 'uploads' ||
+        parseStorageKey(destination)?.kind !== 'originals' ||
+        parseStorageKey(source)?.ownerId !== parseStorageKey(destination)?.ownerId ||
+        !sourceEtag ||
+        /[\r\n]/.test(sourceEtag)
+      )
+        throw new InvalidStorageKeyError();
+      const response = await client.fetch(objectUrl(destination), {
+        method: 'PUT',
+        headers: {
+          'x-amz-copy-source': `/${encodeURIComponent(config.bucket)}/${source}`,
+          'x-amz-copy-source-if-match': sourceEtag,
+        },
+      });
+      // S3 can return an Error document with an HTTP 200 response.
+      const result = await response.text();
+      if (
+        !response.ok ||
+        !/<(?:\w+:)?CopyObjectResult[\s>]/.test(result) ||
+        /<(?:\w+:)?Error[\s>]/.test(result)
+      ) {
+        throw new Error(`Object copy failed (HTTP ${response.status}).`);
       }
     },
   };

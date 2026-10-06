@@ -1,37 +1,57 @@
 import { describe, expect, it } from 'vitest';
-import { buildOriginalKey, keyBelongsToUser } from './keys.ts';
+import {
+  buildOriginalKey,
+  buildUploadKey,
+  buildDerivativeKey,
+  keyBelongsToUser,
+  isMediaKeyForUser,
+  InvalidStorageKeyError,
+} from './keys.ts';
+const owner = '11111111-1111-4111-8111-111111111111';
+const other = '22222222-2222-4222-8222-222222222222';
+const id = '33333333-3333-4333-8333-333333333333';
+const key = `originals/${owner}/${id}.wav`;
 
-describe('buildOriginalKey', () => {
-  it('scopes objects under the owning user', () => {
-    const key = buildOriginalKey({ userId: 'user-1', uploadId: 'abc', extension: 'wav' });
-    expect(key).toBe('originals/user-1/abc.wav');
+describe('storage namespaces', () => {
+  it('builds distinct staging, original and derivative keys', () => {
+    expect(buildOriginalKey({ userId: owner, uploadId: id, extension: 'WAV' })).toBe(key);
+    expect(buildUploadKey({ userId: owner, uploadId: id, extension: 'wav' })).toBe(
+      `uploads/${owner}/${id}.wav`,
+    );
+    expect(buildDerivativeKey({ userId: owner, uploadId: id }, 'preview', 'mp3')).toBe(
+      `derivatives/${owner}/${id}/preview.mp3`,
+    );
   });
-
-  it('drops an extension that is not a plain short token', () => {
-    const key = buildOriginalKey({
-      userId: 'user-1',
-      uploadId: 'abc',
-      extension: '../../etc/passwd',
-    });
-    expect(key).toBe('originals/user-1/abc');
+  it('rejects invalid generator inputs instead of normalizing a dangerous path', () => {
+    expect(() => buildOriginalKey({ userId: owner, uploadId: id, extension: '../wav' })).toThrow(
+      InvalidStorageKeyError,
+    );
+    expect(() => buildOriginalKey({ userId: '../other', uploadId: id, extension: 'wav' })).toThrow(
+      InvalidStorageKeyError,
+    );
   });
-
-  it('never embeds the original filename', () => {
-    const key = buildOriginalKey({ userId: 'u', uploadId: 'id', extension: 'flac' });
-    expect(key).toBe('originals/u/id.flac');
+  it('checks ownership and keeps staging out of playback', () => {
+    expect(keyBelongsToUser(key, owner)).toBe(true);
+    expect(keyBelongsToUser(key, other)).toBe(false);
+    expect(isMediaKeyForUser(key, owner)).toBe(true);
+    expect(isMediaKeyForUser(`uploads/${owner}/${id}.wav`, owner)).toBe(false);
   });
-});
-
-describe('keyBelongsToUser', () => {
-  it("rejects another user's key", () => {
-    expect(keyBelongsToUser('originals/user-2/abc.wav', 'user-1')).toBe(false);
-  });
-
-  it('rejects a prefix-confusion attempt', () => {
-    expect(keyBelongsToUser('originals/user-10/abc.wav', 'user-1')).toBe(false);
-  });
-
-  it('accepts the owner', () => {
-    expect(keyBelongsToUser('originals/user-1/abc.wav', 'user-1')).toBe(true);
+  it.each([
+    `originals/${owner}/../${other}/${id}.wav`,
+    `originals/${owner}/%2e%2e/${other}/${id}.wav`,
+    `originals/${owner}/%252e%252e/${other}/${id}.wav`,
+    `originals/${owner}//${id}.wav`,
+    `originals/${owner}/./${id}.wav`,
+    `originals/${owner}/${id}.wav/extra`,
+    `originals/${owner}/${id}.wav?x=1`,
+    `originals/${owner}/${id}.wav#fragment`,
+    `originals/${owner}/${id}.wav\n`,
+    `originals/${owner}extra/${id}.wav`,
+    `originals/${owner}\\${id}.wav`,
+    `originals/${owner}/%2F${id}.wav`,
+    `originals/${owner}/${id}`,
+    '',
+  ])('rejects malformed key %s', (value) => {
+    expect(keyBelongsToUser(value, owner)).toBe(false);
   });
 });

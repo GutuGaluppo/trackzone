@@ -1,7 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import type { NextRequest } from 'next/server';
-import { createUploadSchema, extensionOf, sanitizeFilename } from '@trackzone/validation';
-import { buildOriginalKey, DEFAULT_UPLOAD_URL_TTL_SECONDS } from '@trackzone/storage';
+import {
+  createUploadSchema,
+  extensionOf,
+  sanitizeFilename,
+  titleFromFilename,
+} from '@trackzone/validation';
+import { buildUploadKey, DEFAULT_UPLOAD_URL_TTL_SECONDS } from '@trackzone/storage';
+import { createAdminSupabase } from '@/lib/supabase/admin';
 import { getOptionalUser } from '@/lib/auth/require-user';
 import { fail, ok, route } from '@/lib/api/responses';
 import { LIMITS, rateLimit } from '@/lib/api/rate-limit';
@@ -16,8 +22,8 @@ export const runtime = 'nodejs';
  * The file never touches this server (docs §6.6) — what this route does is
  * decide whether that upload is allowed to exist at all.
  *
- * No database row is created here: an abandoned upload should leave no trace.
- * Records are created by /api/uploads/complete, after the object is verified.
+ * A server-owned upload session records the authorization. Domain records
+ * are created atomically by /api/uploads/complete after the object is verified.
  */
 export const POST = route(async (request: NextRequest) => {
   const { user } = await getOptionalUser();
@@ -35,7 +41,7 @@ export const POST = route(async (request: NextRequest) => {
   const body = createUploadSchema.parse(await request.json());
 
   const uploadId = randomUUID();
-  const storageKey = buildOriginalKey({
+  const storageKey = buildUploadKey({
     userId: user.id,
     uploadId,
     extension: extensionOf(body.filename),
@@ -47,11 +53,25 @@ export const POST = route(async (request: NextRequest) => {
     expiresInSeconds: DEFAULT_UPLOAD_URL_TTL_SECONDS,
   });
 
+  const filename = sanitizeFilename(body.filename);
+  const { error } = await createAdminSupabase()
+    .from('upload_sessions')
+    .insert({
+      id: uploadId,
+      owner_id: user.id,
+      storage_key: storageKey,
+      filename,
+      mime_type: body.mimeType,
+      file_size: body.fileSize,
+      title: titleFromFilename(filename),
+    });
+  if (error) throw error;
+
   return ok({
     uploadId,
     storageKey,
     // Echoed back so the client stores the normalized name, not the raw one.
-    filename: sanitizeFilename(body.filename),
+    filename,
     upload: target,
   });
 });

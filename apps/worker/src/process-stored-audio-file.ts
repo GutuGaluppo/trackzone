@@ -1,34 +1,37 @@
-import { extractAudioMetadataFromStream } from '@trackzone/audio';
+import { extractAudioMetadataFromStream, UnsupportedAudioError } from '@trackzone/audio';
+import type { Tables } from '@trackzone/types';
+import { isMediaKeyForUser } from '@trackzone/storage';
 import { serviceClient, storage } from './clients.ts';
-import { processAudioFile, type AudioFileRecord } from './process-audio-file.ts';
+import { processAudioFile } from './process-audio-file.ts';
 
-/** The same processing adapter is used by Trigger.dev and the local worker. */
+/** R2 and Supabase are independent; the configured DB may be local or hosted. */
 export async function processStoredAudioFile(audioFileId: string): Promise<void> {
   const db = serviceClient();
   const store = storage();
+  let claimed: Tables<'audio_files'> | null = null;
 
   await processAudioFile(audioFileId, {
-    loadAudioFile: async (id): Promise<AudioFileRecord | null> => {
-      const { data, error } = await db
-        .from('audio_files')
-        .select('id, track_id, storage_key, mime_type, file_size, processing_status')
-        .eq('id', id)
+    loadAudioFile: async (id) => {
+      const { data, error } = await db.rpc('claim_audio_processing', { p_audio_file_id: id });
+      if (error) throw error;
+      claimed = data?.[0] ?? null;
+      return claimed;
+    },
+    // claim_audio_processing already changes status and acquires the exclusive lease.
+    markProcessing: async () => {},
+    loadMetadata: async (record) => {
+      const { data: track, error } = await db
+        .from('tracks')
+        .select('owner_id')
+        .eq('id', record.track_id)
         .maybeSingle();
       if (error) throw error;
-      return data?.processing_status === 'ready' ? null : data;
-    },
-    markProcessing: async (id) => {
-      const { error } = await db
-        .from('audio_files')
-        .update({ processing_status: 'processing', processing_error: null })
-        .eq('id', id);
-      if (error) throw error;
-    },
-    loadMetadata: async (record) => {
+      if (!track || !isMediaKeyForUser(record.storage_key, track.owner_id))
+        throw new UnsupportedAudioError(new Error('Invalid storage ownership.'));
       const url = await store.createDownloadUrl({ key: record.storage_key, expiresInSeconds: 600 });
       const response = await fetch(url, { signal: AbortSignal.timeout(300_000) });
       if (response.status === 404)
-        throw new Error('The original audio file is missing from storage. Import the file again.');
+        throw new UnsupportedAudioError(new Error('Original audio is missing.'));
       if (!response.ok || !response.body)
         throw new Error(`Audio storage could not be read (HTTP ${response.status}).`);
       return extractAudioMetadataFromStream(
@@ -37,29 +40,25 @@ export async function processStoredAudioFile(audioFileId: string): Promise<void>
         record.file_size ?? undefined,
       );
     },
-    applyReadyPatch: async (patch, audioFileId, trackId) => {
-      const { data: current, error: readError } = await db
-        .from('tracks')
-        .select('artist_name, album_name')
-        .eq('id', trackId)
-        .single();
-      if (readError) throw readError;
-      // Keep metadata the user already provided; enrich only empty fields.
-      const { error: trackError } = await db
-        .from('tracks')
-        .update({
-          ...patch.track,
-          ...(current.artist_name ? { artist_name: current.artist_name } : {}),
-          ...(current.album_name ? { album_name: current.album_name } : {}),
-        })
-        .eq('id', trackId);
-      if (trackError) throw trackError;
-      // Publish ready last so readers cannot see an incomplete track patch.
-      const { error } = await db.from('audio_files').update(patch.audioFile).eq('id', audioFileId);
+    applyReadyPatch: async (patch, id) => {
+      const { error } = await db.rpc('finish_audio_processing', {
+        p_audio_file_id: id,
+        p_token: claimed!.processing_token!,
+        p_metadata: { ...patch.audioFile, ...patch.track },
+      });
       if (error) throw error;
     },
-    applyFailedPatch: async (patch, id) => {
-      const { error } = await db.from('audio_files').update(patch.audioFile).eq('id', id);
+    applyFailedPatch: async (patch, id, retryable) => {
+      const { error } = await db
+        .from('audio_files')
+        .update({
+          ...patch.audioFile,
+          processing_retryable: retryable,
+          processing_token: null,
+          processing_lease_expires_at: null,
+        })
+        .eq('id', id)
+        .eq('processing_token', claimed!.processing_token!);
       if (error) throw error;
     },
   });
