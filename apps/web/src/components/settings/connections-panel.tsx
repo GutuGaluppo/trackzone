@@ -16,9 +16,7 @@ export interface ProviderConnectionSummary {
 }
 
 export type ConnectionNotice =
-  | { kind: 'success'; provider: string }
-  | { kind: 'error'; code: string }
-  | null;
+  { kind: 'success'; provider: string } | { kind: 'error'; code: string } | null;
 
 const ERROR_MESSAGES: Record<string, string> = {
   soundcloud_unconfigured: 'SoundCloud isn’t configured on this deployment.',
@@ -100,9 +98,7 @@ export function ConnectionsPanel({
               </p>
             ) : (
               <p className="text-fg-subtle mt-1 text-xs">
-                {soundcloudConfigured
-                  ? 'Not connected.'
-                  : 'Not configured on this deployment.'}
+                {soundcloudConfigured ? 'Not connected.' : 'Not configured on this deployment.'}
               </p>
             )}
           </div>

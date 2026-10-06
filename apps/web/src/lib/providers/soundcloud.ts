@@ -124,7 +124,10 @@ async function requestToken(form: Record<string, string>): Promise<SoundCloudTok
   };
 
   if (!json.access_token || !json.refresh_token) {
-    throw new SoundCloudAuthError(response.status, 'Token response was missing access/refresh token.');
+    throw new SoundCloudAuthError(
+      response.status,
+      'Token response was missing access/refresh token.',
+    );
   }
 
   return {
@@ -156,7 +159,11 @@ export function exchangeCode({
 }
 
 /** Single attempt on purpose — SoundCloud refresh tokens are single-use. */
-export function refreshTokens({ refreshToken }: { refreshToken: string }): Promise<SoundCloudTokens> {
+export function refreshTokens({
+  refreshToken,
+}: {
+  refreshToken: string;
+}): Promise<SoundCloudTokens> {
   const config = requireConfig();
   return requestToken({
     grant_type: 'refresh_token',

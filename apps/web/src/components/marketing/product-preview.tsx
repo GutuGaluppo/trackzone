@@ -59,9 +59,9 @@ const TRACKS: PreviewTrack[] = [
 
 // Static waveform for the transport scrubber. ~44% elapsed.
 const WAVE = [
-  5, 8, 12, 7, 15, 10, 18, 9, 22, 13, 16, 8, 11, 19, 24, 14, 9, 6, 12, 20, 26, 17, 10, 7, 13, 21, 28,
-  16, 11, 8, 14, 9, 6, 10, 17, 23, 15, 9, 12, 7, 19, 25, 14, 8, 11, 5, 9, 16, 22, 13, 7, 10, 18, 12,
-  8, 6, 11, 15, 9, 7,
+  5, 8, 12, 7, 15, 10, 18, 9, 22, 13, 16, 8, 11, 19, 24, 14, 9, 6, 12, 20, 26, 17, 10, 7, 13, 21,
+  28, 16, 11, 8, 14, 9, 6, 10, 17, 23, 15, 9, 12, 7, 19, 25, 14, 8, 11, 5, 9, 16, 22, 13, 7, 10, 18,
+  12, 8, 6, 11, 15, 9, 7,
 ];
 const WAVE_HEAD = 26;
 
@@ -210,7 +210,9 @@ export function ProductPreview() {
                       <Play className="text-fg-subtle h-3 w-3" strokeWidth={1.75} />
                     )}
                   </span>
-                  <span className={cn('truncate', track.active ? 'text-fg font-medium' : 'text-fg')}>
+                  <span
+                    className={cn('truncate', track.active ? 'text-fg font-medium' : 'text-fg')}
+                  >
                     {track.title}
                   </span>
                   <span className="text-fg-muted truncate">{track.artist}</span>
@@ -250,7 +252,7 @@ export function ProductPreview() {
               />
             ))}
             <span
-              className="bg-olive absolute top-0 bottom-0 w-px"
+              className="bg-olive absolute bottom-0 top-0 w-px"
               style={{ left: `${(WAVE_HEAD / WAVE.length) * 100}%` }}
             />
           </div>

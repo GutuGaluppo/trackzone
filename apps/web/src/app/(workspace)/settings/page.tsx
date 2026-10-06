@@ -2,10 +2,7 @@ import type { Metadata } from 'next';
 import { requireUser } from '@/lib/auth/require-user';
 import { soundcloudConfig } from '@/lib/providers/soundcloud';
 import { ProfileForm } from '@/components/settings/profile-form';
-import {
-  ConnectionsPanel,
-  type ConnectionNotice,
-} from '@/components/settings/connections-panel';
+import { ConnectionsPanel, type ConnectionNotice } from '@/components/settings/connections-panel';
 
 export const metadata: Metadata = { title: 'Settings' };
 

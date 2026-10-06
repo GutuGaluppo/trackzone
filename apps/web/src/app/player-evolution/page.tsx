@@ -10,14 +10,9 @@ export const metadata = { title: 'Player evolution' };
 
 export default function PlayerEvolutionPage() {
   return (
-    <main
-      data-environment="workspace"
-      className="min-h-dvh space-y-16 bg-black px-6 py-16"
-    >
+    <main data-environment="workspace" className="min-h-dvh space-y-16 bg-black px-6 py-16">
       <section className="mx-auto max-w-5xl space-y-3">
-        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">
-          v1 — commit 48f27fa
-        </p>
+        <p className="text-xs uppercase tracking-[0.2em] text-neutral-500">v1 — commit 48f27fa</p>
         <ProductPreviewV1 />
       </section>
 

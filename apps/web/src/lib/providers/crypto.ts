@@ -24,12 +24,12 @@ function key(): Buffer {
 
   const raw = serverEnv().PROVIDER_CREDENTIALS_KEY;
   if (!raw) {
-    throw new Error('PROVIDER_CREDENTIALS_KEY is not set — provider token encryption is unavailable.');
+    throw new Error(
+      'PROVIDER_CREDENTIALS_KEY is not set — provider token encryption is unavailable.',
+    );
   }
 
-  const buffer = /^[0-9a-f]{64}$/i.test(raw)
-    ? Buffer.from(raw, 'hex')
-    : Buffer.from(raw, 'base64');
+  const buffer = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
 
   if (buffer.length !== 32) {
     throw new Error(

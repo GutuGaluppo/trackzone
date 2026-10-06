@@ -117,10 +117,7 @@ export default function MarketingHomePage() {
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {BENEFITS.map(({ icon: Icon, title, lead, body }) => (
-            <div
-              key={title}
-              className="border-paper-line rounded-lg border p-5"
-            >
+            <div key={title} className="border-paper-line rounded-lg border p-5">
               <span className="border-paper-line flex h-9 w-9 items-center justify-center rounded-md border">
                 <Icon className="text-signal h-4 w-4" strokeWidth={1.75} aria-hidden />
               </span>

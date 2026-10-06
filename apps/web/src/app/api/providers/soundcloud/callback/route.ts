@@ -29,9 +29,7 @@ export async function GET(request: NextRequest) {
   }
 
   const flow = readFlowCookie(request);
-  const parsed = querySchema.safeParse(
-    Object.fromEntries(new URL(request.url).searchParams),
-  );
+  const parsed = querySchema.safeParse(Object.fromEntries(new URL(request.url).searchParams));
 
   const finish = (params: string) => {
     const response = NextResponse.redirect(new URL(`/settings?${params}`, request.url));
