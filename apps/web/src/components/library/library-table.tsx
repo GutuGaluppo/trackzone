@@ -115,6 +115,7 @@ export function LibraryTable({
                   albumName={track.album_name}
                   visibility={track.visibility}
                   favorite={track.favorite}
+                  processingStatus={track.processing_status}
                   collections={collections}
                 />
               </td>

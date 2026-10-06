@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { FolderPlus, MoreHorizontal, Pencil, Share2, Trash2 } from 'lucide-react';
-import type { TrackVisibility } from '@trackzone/types';
+import { FolderPlus, MoreHorizontal, Pencil, RotateCcw, Share2, Trash2 } from 'lucide-react';
+import type { ProcessingStatus, TrackVisibility } from '@trackzone/types';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -38,6 +38,7 @@ export function TrackActionsMenu({
   albumName,
   visibility,
   favorite,
+  processingStatus,
   collections = [],
 }: {
   trackId: string;
@@ -46,6 +47,7 @@ export function TrackActionsMenu({
   albumName: string | null;
   visibility: TrackVisibility;
   favorite: boolean;
+  processingStatus: ProcessingStatus | null;
   collections?: CollectionOption[];
 }) {
   const router = useRouter();
@@ -95,6 +97,16 @@ export function TrackActionsMenu({
     router.refresh();
   }
 
+  async function reprocessTrack() {
+    setPending(true);
+    try {
+      await fetch(`/api/tracks/${trackId}/reprocess`, { method: 'POST' });
+    } finally {
+      setPending(false);
+      router.refresh();
+    }
+  }
+
   return (
     <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
       <DropdownMenu>
@@ -111,6 +123,12 @@ export function TrackActionsMenu({
           <DropdownMenuItem onSelect={() => void toggleFavorite()}>
             {favorite ? 'Remove from favorites' : 'Add to favorites'}
           </DropdownMenuItem>
+          {processingStatus === 'failed' ? (
+            <DropdownMenuItem onSelect={() => void reprocessTrack()}>
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+              Retry processing
+            </DropdownMenuItem>
+          ) : null}
 
           {collections.length > 0 ? (
             <>
