@@ -13,7 +13,12 @@
     "R2_ENDPOINT",
     "R2_REGION",
     "NEXT_PUBLIC_SITE_URL",
-    "TRIGGER_SECRET_KEY"
+    "TRIGGER_SECRET_KEY",
+    "SOUNDCLOUD_CLIENT_ID",
+    "SOUNDCLOUD_CLIENT_SECRET",
+    "GOOGLE_DRIVE_CLIENT_ID",
+    "GOOGLE_DRIVE_CLIENT_SECRET",
+    "PROVIDER_CREDENTIALS_KEY"
   ],
   "tasks": {
     "build": { "dependsOn": ["^build"], "outputs": [".next/**", "!.next/cache/**", "dist/**"] },

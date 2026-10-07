@@ -85,7 +85,11 @@ function setup() {
   const onPlayingChange = vi.fn((playing: boolean) =>
     usePlayerStore.getState().setPlaying(playing),
   );
-  const onEnded = vi.fn(() => usePlayerStore.getState().next());
+  const onEnded = vi.fn(() => {
+    const state = usePlayerStore.getState();
+    if (state.currentIndex < state.queue.length - 1) state.next();
+    else state.setPlaying(false);
+  });
   const controller = new AudioPlayback(audio as unknown as HTMLAudioElement, {
     getState: () => {
       const state = usePlayerStore.getState();
@@ -263,5 +267,21 @@ describe('signed audio URL renewal', () => {
     audio.dispatchEvent(new Event('ended'));
     expect(onEnded).toHaveBeenCalledOnce();
     expect(usePlayerStore.getState().currentIndex).toBe(1);
+  });
+
+  it('stops only after the final queued track ends', () => {
+    const { audio, load } = setup();
+    load('signed-url-1');
+    audio.metadata();
+    audio.ended = true;
+    audio.dispatchEvent(new Event('ended'));
+
+    load('signed-url-2');
+    audio.metadata();
+    audio.ended = true;
+    audio.dispatchEvent(new Event('ended'));
+
+    expect(usePlayerStore.getState().currentIndex).toBe(1);
+    expect(usePlayerStore.getState().playing).toBe(false);
   });
 });

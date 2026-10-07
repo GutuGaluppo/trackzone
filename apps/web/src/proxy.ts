@@ -12,7 +12,7 @@ import type { Database } from '@trackzone/types';
  */
 
 const WORKSPACE_PREFIXES = ['/library', '/collections', '/settings', '/shared'];
-const AUTH_ROUTES = ['/sign-in', '/sign-up'];
+const AUTH_ROUTES = ['/sign-in', '/sign-up', '/forgot-password'];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

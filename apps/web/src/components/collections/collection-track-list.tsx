@@ -23,12 +23,16 @@ export function CollectionTrackList({
   const playQueue = usePlayerStore((s) => s.playQueue);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
 
-  const queueTracks = tracks.map((t) => ({
-    id: t.id,
-    title: t.title,
-    artistName: t.artist_name,
-    durationMs: t.duration_ms,
-  }));
+  // Do not add pending/failed files to the queue: reaching one would make the
+  // player stop even though there may be a later playable track.
+  const queueTracks = tracks
+    .filter((track) => track.processing_status === 'ready')
+    .map((track) => ({
+      id: track.id,
+      title: track.title,
+      artistName: track.artist_name,
+      durationMs: track.duration_ms,
+    }));
 
   function handlePlay(trackId: string) {
     if (trackId === currentTrackId) {

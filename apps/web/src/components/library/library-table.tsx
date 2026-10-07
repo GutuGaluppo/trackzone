@@ -20,20 +20,30 @@ export function LibraryTable({
   useProcessingRefresh(tracks);
   const currentTrackId = usePlayerStore((s) => s.currentTrack()?.id ?? null);
   const playing = usePlayerStore((s) => s.playing);
-  const playTrack = usePlayerStore((s) => s.playTrack);
+  const playQueue = usePlayerStore((s) => s.playQueue);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
+
+  // A library click starts a continuous queue from the tracks currently in
+  // view. Exclude files that are still being processed so auto-advance never
+  // lands on an item that cannot be played yet.
+  const queueTracks = tracks
+    .filter((track) => track.processing_status === 'ready')
+    .map((track) => ({
+      id: track.id,
+      title: track.title,
+      artistName: track.artist_name,
+      durationMs: track.duration_ms,
+    }));
 
   function handlePlay(track: LibraryTrack) {
     if (track.id === currentTrackId) {
       togglePlay();
       return;
     }
-    playTrack({
-      id: track.id,
-      title: track.title,
-      artistName: track.artist_name,
-      durationMs: track.duration_ms,
-    });
+    playQueue(
+      queueTracks,
+      queueTracks.findIndex((queueTrack) => queueTrack.id === track.id),
+    );
   }
 
   return (

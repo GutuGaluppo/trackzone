@@ -38,20 +38,28 @@ export function SharedTrackList({
   const router = useRouter();
   const currentTrackId = usePlayerStore((s) => s.currentTrack()?.id ?? null);
   const playing = usePlayerStore((s) => s.playing);
-  const playTrack = usePlayerStore((s) => s.playTrack);
+  const playQueue = usePlayerStore((s) => s.playQueue);
   const togglePlay = usePlayerStore((s) => s.togglePlay);
+
+  // Keep playback moving through the playable tracks in this shared view.
+  const queueTracks = tracks
+    .filter((track) => track.processing_status === 'ready')
+    .map((track) => ({
+      id: track.id,
+      title: track.title,
+      artistName: track.artist_name,
+      durationMs: track.duration_ms,
+    }));
 
   function handlePlay(track: LibraryTrack) {
     if (track.id === currentTrackId) {
       togglePlay();
       return;
     }
-    playTrack({
-      id: track.id,
-      title: track.title,
-      artistName: track.artist_name,
-      durationMs: track.duration_ms,
-    });
+    playQueue(
+      queueTracks,
+      queueTracks.findIndex((queueTrack) => queueTrack.id === track.id),
+    );
   }
 
   async function addToCollection(trackId: string, collectionId: string) {

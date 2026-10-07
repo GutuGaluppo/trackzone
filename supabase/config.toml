@@ -249,6 +249,15 @@ otp_expiry = 3600
 # subject = "Your password has been changed"
 # content_path = "./templates/password_changed_notification.html"
 
+# TrackZone branded templates (supabase/templates/).
+[auth.email.template.confirmation]
+subject = "Confirm your TrackZone account"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your TrackZone password"
+content_path = "./supabase/templates/recovery.html"
+
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
 enable_signup = false

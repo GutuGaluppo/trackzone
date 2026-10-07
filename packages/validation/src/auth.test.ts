@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { signUpSchema, updateProfileSchema } from './auth.ts';
+import {
+  passwordResetRequestSchema,
+  resetPasswordSchema,
+  signUpSchema,
+  updateProfileSchema,
+} from './auth.ts';
 
 describe('signUpSchema', () => {
   const base = { email: 'user@example.com', password: 'correct horse battery staple' };
@@ -32,5 +37,25 @@ describe('signUpSchema', () => {
 describe('updateProfileSchema', () => {
   it('accepts clearing the display name to an empty string', () => {
     expect(updateProfileSchema.safeParse({ displayName: '' }).success).toBe(true);
+  });
+});
+
+describe('password reset schemas', () => {
+  it('validates the email used to request a reset', () => {
+    expect(passwordResetRequestSchema.safeParse({ email: 'user@example.com' }).success).toBe(true);
+    expect(passwordResetRequestSchema.safeParse({ email: 'not-an-email' }).success).toBe(false);
+  });
+
+  it('requires a strong matching replacement password', () => {
+    expect(
+      resetPasswordSchema.safeParse({
+        password: 'correct horse battery staple',
+        confirmPassword: 'correct horse battery staple',
+      }).success,
+    ).toBe(true);
+    expect(
+      resetPasswordSchema.safeParse({ password: 'correct horse', confirmPassword: 'different' })
+        .success,
+    ).toBe(false);
   });
 });
