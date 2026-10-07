@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Reset your TrackZone password</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      @media only screen and (max-width: 600px) {
+        .container { width: 100% !important; }
+        .card { padding: 32px 24px !important; }
+        .h1 { font-size: 24px !important; }
+        .button a { display: block !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0; padding:0; background-color:#EAE6DC; -webkit-font-smoothing:antialiased;">
+    <!-- Preheader: shown in the inbox preview, hidden in the message body -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+      Reset your TrackZone password. This link expires in 1 hour.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#EAE6DC;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px; max-width:560px;">
+
+            <!-- Brand header -->
+            <tr>
+              <td style="padding:0 4px 20px 4px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="vertical-align:middle; padding-right:10px;">
+                      <img src="{{ .SiteURL }}/brand/favicon.png" width="28" height="28" alt="TZ"
+                        style="display:block; width:28px; height:28px; border:0; border-radius:6px;" />
+                    </td>
+                    <td style="vertical-align:middle; font-family:'Instrument Sans', Helvetica, Arial, sans-serif; font-size:14px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:#171717;">
+                      TrackZone
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Card -->
+            <tr>
+              <td class="card" style="background-color:#F4F1EA; border:1px solid #D9D3C6; border-radius:5px; padding:44px 40px;">
+
+                <!-- Industrial label -->
+                <p style="margin:0 0 18px 0; font-family:'DM Mono', 'SF Mono', Menlo, Consolas, monospace; font-size:11px; line-height:16px; letter-spacing:0.12em; text-transform:uppercase; color:#77736B;">
+                  <span style="color:#FF4D24;">&#9679;</span>&nbsp; Account &middot; Password reset
+                </p>
+
+                <h1 class="h1" style="margin:0 0 16px 0; font-family:'Instrument Sans', Helvetica, Arial, sans-serif; font-size:28px; line-height:34px; font-weight:600; letter-spacing:-0.02em; color:#171717;">
+                  Reset your password
+                </h1>
+
+                <p style="margin:0 0 28px 0; font-family:'Instrument Sans', Helvetica, Arial, sans-serif; font-size:16px; line-height:25px; color:#171717;">
+                  We received a request to reset the password for
+                  <span style="font-weight:600;">{{ .Email }}</span>. Choose a new password to get back to your library.
+                </p>
+
+                <!-- Primary action -->
+                <table role="presentation" class="button" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px 0;">
+                  <tr>
+                    <td align="center" bgcolor="#FF4D24" style="border-radius:5px;">
+                      <a href="{{ .ConfirmationURL }}" target="_blank"
+                        style="display:inline-block; padding:14px 28px; font-family:'Instrument Sans', Helvetica, Arial, sans-serif; font-size:16px; line-height:20px; font-weight:600; color:#171717; text-decoration:none; border-radius:5px;">
+                        Reset password
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Readout -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 32px 0;">
+                  <tr>
+                    <td style="padding:8px 12px; border:1px solid #D9D3C6; border-radius:3px; background-color:#EAE6DC; font-family:'DM Mono', 'SF Mono', Menlo, Consolas, monospace; font-size:12px; line-height:16px; color:#77736B;">
+                      <span style="color:#8DA52A;">&#9679;</span>&nbsp; LINK VALID FOR 1 HOUR
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Fallback link -->
+                <p style="margin:0 0 8px 0; font-family:'Instrument Sans', Helvetica, Arial, sans-serif; font-size:13px; line-height:20px; color:#77736B;">
+                  Button not working? Paste this link into your browser:
+                </p>
+                <p style="margin:0 0 32px 0; font-family:'DM Mono', 'SF Mono', Menlo, Consolas, monospace; font-size:12px; line-height:18px; word-break:break-all;">
+                  <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#171717; text-decoration:underline;">{{ .ConfirmationURL }}</a>
+                </p>
+
+                <div style="height:1px; line-height:1px; background-color:#D9D3C6; margin:0 0 20px 0;">&nbsp;</div>
+
+                <p style="margin:0; font-family:'Instrument Sans', Helvetica, Arial, sans-serif; font-size:13px; line-height:20px; color:#77736B;">
+                  Didn't request a password reset? Ignore this email. Your password will stay the same.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:24px 4px 0 4px; font-family:'DM Mono', 'SF Mono', Menlo, Consolas, monospace; font-size:11px; line-height:16px; letter-spacing:0.08em; text-transform:uppercase; color:#77736B;">
+                TrackZone &middot; All your audio. Finally yours.
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
