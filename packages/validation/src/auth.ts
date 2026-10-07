@@ -24,6 +24,23 @@ export const signInSchema = z.object({
   password: z.string().min(1, 'Enter your password'),
 });
 
+export const passwordResetRequestSchema = z.object({
+  email: emailSchema,
+});
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 // No .min(1): the field is optional, and an unfilled text input submits ''
 // rather than undefined — react-hook-form has no way to send "not present"
 // for a plain <input>. A .min(1) here would reject that '' as invalid and

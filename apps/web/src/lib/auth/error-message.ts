@@ -1,4 +1,4 @@
-type AuthAction = 'sign-in' | 'sign-up';
+type AuthAction = 'sign-in' | 'sign-up' | 'password-reset';
 
 /** Translate service failures without exposing database details or credentials. */
 export function authErrorMessage(error: unknown, action: AuthAction): string {
@@ -47,7 +47,11 @@ export function authErrorMessage(error: unknown, action: AuthAction): string {
     return 'Email account registration is currently unavailable. Please try again later.';
   }
 
-  return action === 'sign-up'
-    ? 'Account creation is temporarily unavailable. Please try again later.'
-    : 'Sign-in is temporarily unavailable. Please try again later.';
+  if (action === 'sign-up') {
+    return 'Account creation is temporarily unavailable. Please try again later.';
+  }
+  if (action === 'password-reset') {
+    return 'Password reset is temporarily unavailable. Please try again later.';
+  }
+  return 'Sign-in is temporarily unavailable. Please try again later.';
 }
