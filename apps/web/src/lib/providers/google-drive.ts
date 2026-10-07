@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { clientEnv, serverEnv } from '@/env';
+import { isProviderCredentialsKeyValid } from './crypto';
 
 const AUTHORIZE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -40,11 +41,11 @@ export function googleDriveConfig(): GoogleDriveConfig | null {
     PROVIDER_CREDENTIALS_KEY: key,
   } = serverEnv();
   if (!clientId && !clientSecret) return null;
-  if (!clientId || !clientSecret || !key) {
+  if (!clientId || !clientSecret || !isProviderCredentialsKeyValid(key)) {
     if (!warnedPartial) {
       warnedPartial = true;
       console.warn(
-        '[providers] Google Drive is partially configured — set GOOGLE_DRIVE_CLIENT_ID, GOOGLE_DRIVE_CLIENT_SECRET and PROVIDER_CREDENTIALS_KEY together.',
+        '[providers] Google Drive is not configured — set GOOGLE_DRIVE_CLIENT_ID, GOOGLE_DRIVE_CLIENT_SECRET and a valid 32-byte PROVIDER_CREDENTIALS_KEY together.',
       );
     }
     return null;

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { decryptJson, encryptJson } from './crypto';
+import { decryptJson, encryptJson, isProviderCredentialsKeyValid } from './crypto';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -7,6 +7,13 @@ afterEach(() => {
 });
 
 describe('encryptJson / decryptJson', () => {
+  it('recognizes valid 32-byte base64 and hex keys only', () => {
+    expect(isProviderCredentialsKeyValid(Buffer.alloc(32, 1).toString('base64'))).toBe(true);
+    expect(isProviderCredentialsKeyValid('ab'.repeat(32))).toBe(true);
+    expect(isProviderCredentialsKeyValid('not-a-32-byte-key')).toBe(false);
+    expect(isProviderCredentialsKeyValid(undefined)).toBe(false);
+  });
+
   it('round-trips an arbitrary JSON value', () => {
     const value = { accessToken: 'a.b.c', refreshToken: 'r-1', expiresAt: '2026-01-01T00:00:00Z' };
     const token = encryptJson(value);

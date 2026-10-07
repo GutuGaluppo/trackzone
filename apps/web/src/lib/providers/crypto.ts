@@ -19,6 +19,13 @@ const IV_BYTES = 12;
 
 let cachedKey: Buffer | null = null;
 
+/** True when a value can be used as an AES-256-GCM provider credentials key. */
+export function isProviderCredentialsKeyValid(raw: string | undefined): boolean {
+  if (!raw) return false;
+  const buffer = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
+  return buffer.length === 32;
+}
+
 function key(): Buffer {
   if (cachedKey) return cachedKey;
 
@@ -31,7 +38,7 @@ function key(): Buffer {
 
   const buffer = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
 
-  if (buffer.length !== 32) {
+  if (!isProviderCredentialsKeyValid(raw)) {
     throw new Error(
       `PROVIDER_CREDENTIALS_KEY must decode to 32 bytes (got ${buffer.length}). ` +
         'Generate one with: openssl rand -base64 32',

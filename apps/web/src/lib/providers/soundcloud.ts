@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { clientEnv, serverEnv } from '@/env';
+import { isProviderCredentialsKeyValid } from './crypto';
 
 /**
  * SoundCloud OAuth 2.1 client (PKCE). Pure HTTP + config — no database.
@@ -60,12 +61,12 @@ export function soundcloudConfig(): SoundCloudConfig | null {
 
   if (!clientId && !clientSecret) return null;
 
-  if (!clientId || !clientSecret || !credentialsKey) {
+  if (!clientId || !clientSecret || !isProviderCredentialsKeyValid(credentialsKey)) {
     if (!warnedPartial) {
       warnedPartial = true;
       console.warn(
         '[providers] SoundCloud is partially configured — set SOUNDCLOUD_CLIENT_ID, ' +
-          'SOUNDCLOUD_CLIENT_SECRET and PROVIDER_CREDENTIALS_KEY together. Integration stays off.',
+          'SOUNDCLOUD_CLIENT_SECRET and a valid 32-byte PROVIDER_CREDENTIALS_KEY together. Integration stays off.',
       );
     }
     return null;
